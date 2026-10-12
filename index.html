@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>页边 MARGIN · 一个关于排版、界面与写作的中文博客</title>
+    <meta
+      name="description"
+      content="页边是一个中文写作博客。记录排版、界面与工具上的判断，以及那些不值得单独成篇的观察。"
+    />
+
+    <!-- 主题需在首次绘制前定妥，避免闪白 -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("margin-theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {
+          /* 存储不可用时保持默认纸色 */
+        }
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Noto+Serif+SC:wght@400..700&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+
+    <!-- ====================================================================
+         报头
+         ==================================================================== -->
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="wordmark" href="index.html" aria-label="页边 MARGIN 首页">
+          <span class="wordmark__zh">页边</span>
+          <span class="wordmark__en">Margin</span>
+        </a>
+
+        <nav class="nav" aria-label="主导航">
+          <a class="nav__link" href="index.html" aria-current="page">文章</a>
+          <a class="nav__link" href="#topics">栏目</a>
+          <a class="nav__link" href="#subscribe">订阅</a>
+        </nav>
+
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换深浅色主题">
+          <span class="theme-toggle__dial" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ==================================================================
+           头条
+           ================================================================== -->
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero__grid">
+          <div class="hero__body">
+            <h1 class="hero__title display reveal" id="hero-title">
+              字号、行距与一点耐心
+            </h1>
+
+            <p class="hero__lede reveal" style="--reveal-delay: 70ms">
+              中文网页读起来累，问题多半在字号与行距，跟内容本身关系不大。
+            </p>
+
+            <p class="meta hero__byline reveal" style="--reveal-delay: 130ms">
+              <span>排版</span>
+              <span class="meta__sep" aria-hidden="true"></span>
+              <span>林知白</span>
+              <span class="meta__sep" aria-hidden="true"></span>
+              <time datetime="2026-10-08">10 月 8 日</time>
+            </p>
+
+            <p class="hero__cta reveal" style="--reveal-delay: 190ms">
+              <a class="arrow-link" href="article.html">阅读全文</a>
+            </p>
+          </div>
+
+          <figure class="hero__figure reveal">
+            <!-- 占位摄影图。上线前请替换为文章配图或实拍，并同步改写 alt -->
+            <img
+              class="hero__img"
+              src="https://picsum.photos/seed/margin-typesetting-proof/1000/1250"
+              width="1000"
+              height="1250"
+              alt=""
+            />
+          </figure>
+        </div>
+      </section>
+
+      <hr class="rule-ink" />
+
+      <!-- ==================================================================
+           近期写作
+           ================================================================== -->
+      <section class="section container" aria-labelledby="recent-title">
+        <div class="section-head">
+          <h2 class="section-head__title display" id="recent-title">近期写作</h2>
+          <p class="section-head__lede">
+            写完就发，不做预告。若要等下一篇，通常需要两到三周。
+          </p>
+        </div>
+
+        <div class="index__grid">
+          <div class="index__main">
+            <article class="entry">
+              <a class="entry__figure" href="article.html" tabindex="-1" aria-hidden="true">
+                <img
+                  class="entry__img"
+                  src="https://picsum.photos/seed/margin-desk-manuscript/1200/675"
+                  width="1200"
+                  height="675"
+                  loading="lazy"
+                  alt=""
+                />
+              </a>
+
+              <div class="entry__body">
+                <h3 class="entry__title display">
+                  <a class="link-rule" href="article.html">一份排版自查清单</a>
+                </h3>
+                <p class="entry__excerpt">
+                  从字号到标点，十一个可以在半小时内改完的项目。改完不一定会变好看，但会开始有人读完。
+                </p>
+                <p class="meta">
+                  <a href="#topics">排版</a>
+                  <span class="meta__dot" aria-hidden="true">·</span>
+                  <time datetime="2026-09-24">9 月 24 日</time>
+                </p>
+              </div>
+            </article>
+
+            <article class="entry entry--plain">
+              <div class="entry__body">
+                <h3 class="entry__title display">
+                  <a class="link-rule" href="article.html">一个不联网的阅读器</a>
+                </h3>
+                <p class="entry__excerpt">
+                  不做推荐，不做统计，不上传任何一个字。它只负责把文字放到合适的位置，然后闭嘴。
+                </p>
+                <p class="meta">
+                  <a href="#topics">工具</a>
+                  <span class="meta__dot" aria-hidden="true">·</span>
+                  <time datetime="2026-09-11">9 月 11 日</time>
+                </p>
+              </div>
+            </article>
+          </div>
+
+          <aside class="index__aside">
+            <div class="aside-block">
+              <h3 class="aside-block__title">编辑推荐</h3>
+              <ul class="picks">
+                <li>
+                  <a class="pick" href="article.html">
+                    <span class="pick__num" aria-hidden="true">01</span>
+                    <span class="pick__title">设计稿里的那三秒</span>
+                    <span class="pick__meta">界面</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="pick" href="article.html">
+                    <span class="pick__num" aria-hidden="true">02</span>
+                    <span class="pick__title">标点符号的呼吸</span>
+                    <span class="pick__meta">排版</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="pick" href="article.html">
+                    <span class="pick__num" aria-hidden="true">03</span>
+                    <span class="pick__title">文档写给谁看</span>
+                    <span class="pick__meta">随笔</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="pick" href="article.html">
+                    <span class="pick__num" aria-hidden="true">04</span>
+                    <span class="pick__title">印刷厂的校样课</span>
+                    <span class="pick__meta">排版</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="aside-block">
+              <h3 class="aside-block__title">年份归档</h3>
+              <div>
+                <a class="archive__row" href="#recent-title">
+                  <span>2026 年</span>
+                  <span class="archive__count">28 篇</span>
+                </a>
+                <a class="archive__row" href="#recent-title">
+                  <span>2025 年</span>
+                  <span class="archive__count">19 篇</span>
+                </a>
+                <a class="archive__row" href="#recent-title">
+                  <span>2024 年</span>
+                  <span class="archive__count">12 篇</span>
+                </a>
+                <a class="archive__row" href="#recent-title">
+                  <span>2023 年</span>
+                  <span class="archive__count">6 篇</span>
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           引文
+           ================================================================== -->
+      <section class="pull" aria-label="摘句">
+        <div class="container">
+          <blockquote class="pull__quote">
+            读者说一篇文章太闷的时候，有一半是在说排版。
+          </blockquote>
+          <p class="pull__source">
+            林知白，2026 年 3 月
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           栏目
+           ================================================================== -->
+      <section class="section container" id="topics" aria-labelledby="topics-title">
+        <div class="topics__grid">
+          <div class="section-head">
+            <h2 class="section-head__title display" id="topics-title">栏目</h2>
+            <p class="section-head__lede">
+              四个方向，互不重叠。前两个是工作，后两个是工作之外的部分。
+            </p>
+          </div>
+
+          <div class="topics__list">
+            <a class="topic" href="article.html">
+              <span>
+                <span class="topic__name">排版</span>
+                <span class="topic__desc">字体、网格、标点与长文编排</span>
+              </span>
+              <span class="topic__count">18 篇</span>
+              <span class="topic__arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="topic" href="article.html">
+              <span>
+                <span class="topic__name">界面</span>
+                <span class="topic__desc">产品细节，以及那些当时没想清楚的决定</span>
+              </span>
+              <span class="topic__count">11 篇</span>
+              <span class="topic__arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="topic" href="article.html">
+              <span>
+                <span class="topic__name">工具</span>
+                <span class="topic__desc">我在用的东西，以及为什么换掉前一个</span>
+              </span>
+              <span class="topic__count">7 篇</span>
+              <span class="topic__arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="topic" href="article.html">
+              <span>
+                <span class="topic__name">随笔</span>
+                <span class="topic__desc">不值得单独成篇的观察，攒到一定数量就发出来</span>
+              </span>
+              <span class="topic__count">23 篇</span>
+              <span class="topic__arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           订阅
+           ================================================================== -->
+      <section class="section container" id="subscribe" aria-labelledby="subscribe-title">
+        <h2 class="subscribe__title display" id="subscribe-title">
+          每月一封，写点慢的东西
+        </h2>
+        <p class="subscribe__lede">
+          新文章、正在读的书，以及一段不值得单独成篇的观察。没有广告，不转发给任何人。
+        </p>
+
+        <form class="subscribe__form" data-subscribe novalidate>
+          <div class="field">
+            <label class="field__label" for="email">邮箱</label>
+            <input
+              class="field__input"
+              id="email"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <button class="btn" type="submit">订阅</button>
+        </form>
+
+        <p class="subscribe__note" data-subscribe-note role="status" aria-live="polite">
+          每月一期，随时可以退订。
+        </p>
+      </section>
+    </main>
+
+    <!-- ====================================================================
+         页脚
+         ==================================================================== -->
+    <footer class="footer">
+      <hr class="rule-ink" />
+      <div class="container">
+        <div class="footer__grid">
+          <div>
+            <p class="footer__title">页边</p>
+            <p class="footer__blurb">
+              一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。
+            </p>
+          </div>
+
+          <nav aria-label="页脚导航">
+            <h2 class="footer__heading">浏览</h2>
+            <div class="footer__list">
+              <a href="index.html">文章</a>
+              <a href="#topics">栏目</a>
+              <a href="#subscribe">订阅</a>
+            </div>
+          </nav>
+
+          <div>
+            <h2 class="footer__heading">订阅渠道</h2>
+            <div class="footer__list">
+              <a href="#subscribe">邮件</a>
+              <a href="#subscribe">RSS</a>
+              <a href="#subscribe">GitHub</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__baseline">
+          <span>© 2026 页边</span>
+          <span>第 014 期，2026 年 10 月</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>

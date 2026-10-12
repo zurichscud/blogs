@@ -1,0 +1,183 @@
+- generic [active] [ref=e1]:
+  - link "跳到正文" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "页边 MARGIN 首页" [ref=e5] [cursor=pointer]:
+        - /url: index.html
+        - generic [ref=e6]: 页边
+        - generic [ref=e7]: Margin
+      - navigation "主导航" [ref=e8]:
+        - link "文章" [ref=e9] [cursor=pointer]:
+          - /url: index.html
+        - link "栏目" [ref=e10] [cursor=pointer]:
+          - /url: "#topics"
+        - link "订阅" [ref=e11] [cursor=pointer]:
+          - /url: "#subscribe"
+      - button "切换深浅色主题" [ref=e12] [cursor=pointer]
+  - main [ref=e14]:
+    - region [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - paragraph [ref=e18]: 本期头条
+          - heading "字号、行距与一点耐心" [level=1] [ref=e19]
+          - paragraph [ref=e20]: 中文网页读起来累，问题多半在字号与行距，跟内容本身关系不大。
+          - paragraph [ref=e21]:
+            - generic [ref=e22]: 林知白
+            - generic [aria-hidden] [ref=e23]: ·
+            - time [ref=e24]: 10 月 8 日
+        - figure [ref=e25]
+    - separator [ref=e26]
+    - region [ref=e27]:
+      - generic [ref=e28]:
+        - heading "近期写作" [level=2] [ref=e29]
+        - paragraph [ref=e30]: 写完就发，不做预告。若要等下一篇，通常需要两到三周。
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - article [ref=e33]:
+            - link [aria-hidden] [ref=e34] [cursor=pointer]:
+              - /url: article.html
+            - generic [ref=e35]:
+              - heading [level=3] [ref=e36]:
+                - link "一份排版自查清单" [ref=e37] [cursor=pointer]:
+                  - /url: article.html
+              - paragraph [ref=e38]: 从字号到标点，十一个可以在半小时内改完的项目。改完不一定会变好看，但会开始有人读完。
+              - paragraph [ref=e39]:
+                - link "排版" [ref=e40] [cursor=pointer]:
+                  - /url: "#topics"
+                - generic [aria-hidden] [ref=e41]: ·
+                - time [ref=e42]: 9 月 24 日
+          - article [ref=e43]:
+            - generic [ref=e44]:
+              - heading [level=3] [ref=e45]:
+                - link "一个不联网的阅读器" [ref=e46] [cursor=pointer]:
+                  - /url: article.html
+              - paragraph [ref=e47]: 不做推荐，不做统计，不上传任何一个字。它只负责把文字放到合适的位置，然后闭嘴。
+              - paragraph [ref=e48]:
+                - link "工具" [ref=e49] [cursor=pointer]:
+                  - /url: "#topics"
+                - generic [aria-hidden] [ref=e50]: ·
+                - time [ref=e51]: 9 月 11 日
+        - complementary [ref=e52]:
+          - generic [ref=e53]:
+            - heading "编辑推荐" [level=3] [ref=e54]
+            - list [ref=e55]:
+              - listitem [ref=e56]:
+                - link "设计稿里的那三秒 界面" [ref=e57] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=e58]: "01"
+                  - generic [ref=e59]: 设计稿里的那三秒
+                  - generic [ref=e60]: 界面
+              - listitem [ref=e61]:
+                - link "标点符号的呼吸 排版" [ref=e62] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=e63]: "02"
+                  - generic [ref=e64]: 标点符号的呼吸
+                  - generic [ref=e65]: 排版
+              - listitem [ref=e66]:
+                - link "文档写给谁看 随笔" [ref=e67] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=e68]: "03"
+                  - generic [ref=e69]: 文档写给谁看
+                  - generic [ref=e70]: 随笔
+              - listitem [ref=e71]:
+                - link "印刷厂的校样课 排版" [ref=e72] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=e73]: "04"
+                  - generic [ref=e74]: 印刷厂的校样课
+                  - generic [ref=e75]: 排版
+          - generic [ref=e76]:
+            - heading "年份归档" [level=3] [ref=e77]
+            - generic [ref=e78]:
+              - link "2026 年 28 篇" [ref=e79] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=e80]: 2026 年
+                - generic [ref=e81]: 28 篇
+              - link "2025 年 19 篇" [ref=e82] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=e83]: 2025 年
+                - generic [ref=e84]: 19 篇
+              - link "2024 年 12 篇" [ref=e85] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=e86]: 2024 年
+                - generic [ref=e87]: 12 篇
+              - link "2023 年 6 篇" [ref=e88] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=e89]: 2023 年
+                - generic [ref=e90]: 6 篇
+    - region "摘句" [ref=e91]:
+      - generic [ref=e92]:
+        - blockquote [ref=e93]: 读者说一篇文章太闷的时候，有一半是在说排版。
+        - paragraph [ref=e94]: 林知白，2026 年 3 月
+    - region [ref=e95]:
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - heading "栏目" [level=2] [ref=e98]
+          - paragraph [ref=e99]: 四个方向，互不重叠。前两个是工作，后两个是工作之外的部分。
+        - generic [ref=e100]:
+          - link "排版 字体、网格、标点与长文编排 18 篇" [ref=e101] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=e102]:
+              - text: 排版
+              - generic [ref=e103]: 字体、网格、标点与长文编排
+            - generic [ref=e104]: 18 篇
+            - generic [aria-hidden] [ref=e105]: →
+          - link "界面 产品细节，以及那些当时没想清楚的决定 11 篇" [ref=e106] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=e107]:
+              - text: 界面
+              - generic [ref=e108]: 产品细节，以及那些当时没想清楚的决定
+            - generic [ref=e109]: 11 篇
+            - generic [aria-hidden] [ref=e110]: →
+          - link "工具 我在用的东西，以及为什么换掉前一个 7 篇" [ref=e111] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=e112]:
+              - text: 工具
+              - generic [ref=e113]: 我在用的东西，以及为什么换掉前一个
+            - generic [ref=e114]: 7 篇
+            - generic [aria-hidden] [ref=e115]: →
+          - link "随笔 不值得单独成篇的观察，攒到一定数量就发出来 23 篇" [ref=e116] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=e117]:
+              - text: 随笔
+              - generic [ref=e118]: 不值得单独成篇的观察，攒到一定数量就发出来
+            - generic [ref=e119]: 23 篇
+            - generic [aria-hidden] [ref=e120]: →
+    - region [ref=e121]:
+      - heading "每月一封，写点慢的东西" [level=2] [ref=e122]
+      - paragraph [ref=e123]: 新文章、正在读的书，以及一段不值得单独成篇的观察。没有广告，不转发给任何人。
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]: 邮箱
+          - textbox "邮箱" [ref=e127]:
+            - /placeholder: you@example.com
+        - button "订阅" [ref=e128] [cursor=pointer]
+      - status [ref=e129]: 每月一期，随时可以退订。
+  - contentinfo [ref=e130]:
+    - separator [ref=e131]
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - paragraph [ref=e135]: 页边
+          - paragraph [ref=e136]: 一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。
+        - navigation "页脚导航" [ref=e137]:
+          - heading "浏览" [level=2] [ref=e138]
+          - generic [ref=e139]:
+            - link "文章" [ref=e140] [cursor=pointer]:
+              - /url: index.html
+            - link "栏目" [ref=e141] [cursor=pointer]:
+              - /url: "#topics"
+            - link "订阅" [ref=e142] [cursor=pointer]:
+              - /url: "#subscribe"
+        - generic [ref=e143]:
+          - heading "订阅渠道" [level=2] [ref=e144]
+          - generic [ref=e145]:
+            - link "邮件" [ref=e146] [cursor=pointer]:
+              - /url: "#subscribe"
+            - link "RSS" [ref=e147] [cursor=pointer]:
+              - /url: "#subscribe"
+            - link "GitHub" [ref=e148] [cursor=pointer]:
+              - /url: "#subscribe"
+      - generic [ref=e149]:
+        - generic [ref=e150]: © 2026 页边
+        - generic [ref=e151]: 第 014 期，2026 年 10 月

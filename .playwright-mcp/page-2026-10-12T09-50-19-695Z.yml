@@ -1,0 +1,185 @@
+- generic [active] [ref=f1e1]:
+  - link "跳到正文" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - link "页边 MARGIN 首页" [ref=f1e5] [cursor=pointer]:
+        - /url: index.html
+        - generic [ref=f1e6]: 页边
+        - generic [ref=f1e7]: Margin
+      - navigation "主导航" [ref=f1e8]:
+        - link "文章" [ref=f1e9] [cursor=pointer]:
+          - /url: index.html
+        - link "栏目" [ref=f1e10] [cursor=pointer]:
+          - /url: "#topics"
+        - link "订阅" [ref=f1e11] [cursor=pointer]:
+          - /url: "#subscribe"
+      - button "切换深浅色主题" [ref=f1e12] [cursor=pointer]
+  - main [ref=f1e14]:
+    - region [ref=f1e15]:
+      - generic [ref=f1e16]:
+        - generic [ref=f1e17]:
+          - heading "字号、行距与一点耐心" [level=1] [ref=f1e18]
+          - paragraph [ref=f1e19]: 中文网页读起来累，问题多半在字号与行距，跟内容本身关系不大。
+          - paragraph [ref=f1e20]:
+            - generic [ref=f1e21]: 排版
+            - generic [ref=f1e23]: 林知白
+            - time [ref=f1e25]: 10 月 8 日
+          - paragraph [ref=f1e26]:
+            - link "阅读全文 →" [ref=f1e27] [cursor=pointer]:
+              - /url: article.html
+        - figure [ref=f1e28]
+    - separator [ref=f1e29]
+    - region [ref=f1e30]:
+      - generic [ref=f1e31]:
+        - heading "近期写作" [level=2] [ref=f1e32]
+        - paragraph [ref=f1e33]: 写完就发，不做预告。若要等下一篇，通常需要两到三周。
+      - generic [ref=f1e34]:
+        - generic [ref=f1e35]:
+          - article [ref=f1e36]:
+            - link [aria-hidden] [ref=f1e37] [cursor=pointer]:
+              - /url: article.html
+            - generic [ref=f1e38]:
+              - heading [level=3] [ref=f1e39]:
+                - link "一份排版自查清单" [ref=f1e40] [cursor=pointer]:
+                  - /url: article.html
+              - paragraph [ref=f1e41]: 从字号到标点，十一个可以在半小时内改完的项目。改完不一定会变好看，但会开始有人读完。
+              - paragraph [ref=f1e42]:
+                - link "排版" [ref=f1e43] [cursor=pointer]:
+                  - /url: "#topics"
+                - generic [aria-hidden] [ref=f1e44]: ·
+                - time [ref=f1e45]: 9 月 24 日
+          - article [ref=f1e46]:
+            - generic [ref=f1e47]:
+              - heading [level=3] [ref=f1e48]:
+                - link "一个不联网的阅读器" [ref=f1e49] [cursor=pointer]:
+                  - /url: article.html
+              - paragraph [ref=f1e50]: 不做推荐，不做统计，不上传任何一个字。它只负责把文字放到合适的位置，然后闭嘴。
+              - paragraph [ref=f1e51]:
+                - link "工具" [ref=f1e52] [cursor=pointer]:
+                  - /url: "#topics"
+                - generic [aria-hidden] [ref=f1e53]: ·
+                - time [ref=f1e54]: 9 月 11 日
+        - complementary [ref=f1e55]:
+          - generic [ref=f1e56]:
+            - heading "编辑推荐" [level=3] [ref=f1e57]
+            - list [ref=f1e58]:
+              - listitem [ref=f1e59]:
+                - link "设计稿里的那三秒 界面" [ref=f1e60] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=f1e61]: "01"
+                  - generic [ref=f1e62]: 设计稿里的那三秒
+                  - generic [ref=f1e63]: 界面
+              - listitem [ref=f1e64]:
+                - link "标点符号的呼吸 排版" [ref=f1e65] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=f1e66]: "02"
+                  - generic [ref=f1e67]: 标点符号的呼吸
+                  - generic [ref=f1e68]: 排版
+              - listitem [ref=f1e69]:
+                - link "文档写给谁看 随笔" [ref=f1e70] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=f1e71]: "03"
+                  - generic [ref=f1e72]: 文档写给谁看
+                  - generic [ref=f1e73]: 随笔
+              - listitem [ref=f1e74]:
+                - link "印刷厂的校样课 排版" [ref=f1e75] [cursor=pointer]:
+                  - /url: article.html
+                  - generic [aria-hidden] [ref=f1e76]: "04"
+                  - generic [ref=f1e77]: 印刷厂的校样课
+                  - generic [ref=f1e78]: 排版
+          - generic [ref=f1e79]:
+            - heading "年份归档" [level=3] [ref=f1e80]
+            - generic [ref=f1e81]:
+              - link "2026 年 28 篇" [ref=f1e82] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=f1e83]: 2026 年
+                - generic [ref=f1e84]: 28 篇
+              - link "2025 年 19 篇" [ref=f1e85] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=f1e86]: 2025 年
+                - generic [ref=f1e87]: 19 篇
+              - link "2024 年 12 篇" [ref=f1e88] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=f1e89]: 2024 年
+                - generic [ref=f1e90]: 12 篇
+              - link "2023 年 6 篇" [ref=f1e91] [cursor=pointer]:
+                - /url: "#recent-title"
+                - generic [ref=f1e92]: 2023 年
+                - generic [ref=f1e93]: 6 篇
+    - region "摘句" [ref=f1e94]:
+      - generic [ref=f1e95]:
+        - blockquote [ref=f1e96]: 读者说一篇文章太闷的时候，有一半是在说排版。
+        - paragraph [ref=f1e97]: 林知白，2026 年 3 月
+    - region [ref=f1e98]:
+      - generic [ref=f1e99]:
+        - generic [ref=f1e100]:
+          - heading "栏目" [level=2] [ref=f1e101]
+          - paragraph [ref=f1e102]: 四个方向，互不重叠。前两个是工作，后两个是工作之外的部分。
+        - generic [ref=f1e103]:
+          - link "排版 字体、网格、标点与长文编排 18 篇" [ref=f1e104] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=f1e105]:
+              - text: 排版
+              - generic [ref=f1e106]: 字体、网格、标点与长文编排
+            - generic [ref=f1e107]: 18 篇
+            - generic [aria-hidden] [ref=f1e108]: →
+          - link "界面 产品细节，以及那些当时没想清楚的决定 11 篇" [ref=f1e109] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=f1e110]:
+              - text: 界面
+              - generic [ref=f1e111]: 产品细节，以及那些当时没想清楚的决定
+            - generic [ref=f1e112]: 11 篇
+            - generic [aria-hidden] [ref=f1e113]: →
+          - link "工具 我在用的东西，以及为什么换掉前一个 7 篇" [ref=f1e114] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=f1e115]:
+              - text: 工具
+              - generic [ref=f1e116]: 我在用的东西，以及为什么换掉前一个
+            - generic [ref=f1e117]: 7 篇
+            - generic [aria-hidden] [ref=f1e118]: →
+          - link "随笔 不值得单独成篇的观察，攒到一定数量就发出来 23 篇" [ref=f1e119] [cursor=pointer]:
+            - /url: article.html
+            - generic [ref=f1e120]:
+              - text: 随笔
+              - generic [ref=f1e121]: 不值得单独成篇的观察，攒到一定数量就发出来
+            - generic [ref=f1e122]: 23 篇
+            - generic [aria-hidden] [ref=f1e123]: →
+    - region [ref=f1e124]:
+      - heading "每月一封，写点慢的东西" [level=2] [ref=f1e125]
+      - paragraph [ref=f1e126]: 新文章、正在读的书，以及一段不值得单独成篇的观察。没有广告，不转发给任何人。
+      - generic [ref=f1e127]:
+        - generic [ref=f1e128]:
+          - generic [ref=f1e129]: 邮箱
+          - textbox "邮箱" [ref=f1e130]:
+            - /placeholder: you@example.com
+        - button "订阅" [ref=f1e131] [cursor=pointer]
+      - status [ref=f1e132]: 每月一期，随时可以退订。
+  - contentinfo [ref=f1e133]:
+    - separator [ref=f1e134]
+    - generic [ref=f1e135]:
+      - generic [ref=f1e136]:
+        - generic [ref=f1e137]:
+          - paragraph [ref=f1e138]: 页边
+          - paragraph [ref=f1e139]: 一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。
+        - navigation "页脚导航" [ref=f1e140]:
+          - heading "浏览" [level=2] [ref=f1e141]
+          - generic [ref=f1e142]:
+            - link "文章" [ref=f1e143] [cursor=pointer]:
+              - /url: index.html
+            - link "栏目" [ref=f1e144] [cursor=pointer]:
+              - /url: "#topics"
+            - link "订阅" [ref=f1e145] [cursor=pointer]:
+              - /url: "#subscribe"
+        - generic [ref=f1e146]:
+          - heading "订阅渠道" [level=2] [ref=f1e147]
+          - generic [ref=f1e148]:
+            - link "邮件" [ref=f1e149] [cursor=pointer]:
+              - /url: "#subscribe"
+            - link "RSS" [ref=f1e150] [cursor=pointer]:
+              - /url: "#subscribe"
+            - link "GitHub" [ref=f1e151] [cursor=pointer]:
+              - /url: "#subscribe"
+      - generic [ref=f1e152]:
+        - generic [ref=f1e153]: © 2026 页边
+        - generic [ref=f1e154]: 第 014 期，2026 年 10 月
