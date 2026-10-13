@@ -3,17 +3,17 @@
 # 生成的 posts/typesetting-basics.html 应该和 article.html 视觉一致。
 #
 # 可用字段（只有 title 必填）：
-#   title / date / lede / category / description / author / minutes
+#   title / date / lede / category / description / minutes
 #   date 选填；没写就不显示日期，上下篇里排在有日期的后面
 #   tags: [a, b]      cover / coverAlt / coverCaption
 #   coverWidth / coverHeight   远程封面没有尺寸时手动补，避免加载跳动
 #   draft: true       写入后跳过生成
 #   prevTitle + prevUrl / nextTitle + nextUrl   手工指定上下篇，不写就按日期自动算
+# 作者名不在这里写，改 template.mjs 里的 SITE.author
 
 title: 字号、行距与一点耐心
 date: 2026-10-08
 category: 排版
-author: 林知白
 minutes: 12
 lede: 中文网页读起来累，问题多半在字号与行距，跟内容本身关系不大。
 description: 中文网页读起来累，问题多半在字号与行距。这是一份可以立刻动手改的清单，以及背后的理由。

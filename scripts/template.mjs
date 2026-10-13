@@ -14,6 +14,7 @@ const SITE = {
   zh: "页边",
   en: "Margin",
   brand: "页边 MARGIN",
+  author: "林知白",
   blurb: "一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。",
   issue: "第 014 期，2026 年 10 月",
 };
@@ -63,7 +64,6 @@ export function renderPage(post) {
     description,
     category,
     lede,
-    author,
     dateISO,
     dateText,
     minutes,
@@ -169,7 +169,7 @@ ${
       : ""
   }
           <p class="meta article__byline reveal" style="--reveal-delay: 160ms">
-            <span>${esc(author)}</span>${
+            <span>${esc(SITE.author)}</span>${
     dateText
       ? `
             <span class="meta__sep" aria-hidden="true"></span>

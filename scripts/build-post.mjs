@@ -8,11 +8,12 @@
 
    markdown 约定（完整示例见 posts/typesetting-basics.md）：
      - front matter 用 --- 包起来，只有 title 必填。字段：title / date / lede /
-       category / description / author / minutes / tags / cover / coverAlt /
+       category / description / minutes / tags / cover / coverAlt /
        coverCaption / coverWidth / coverHeight / draft /
        prevTitle / prevUrl / nextTitle / nextUrl
      - date 选填，写了就必须是 YYYY-MM-DD；没写的文章不显示日期，
        在上下篇里排在有日期的后面
+     - 作者名是全站常量，在 template.mjs 的 SITE.author 里改，不写在每篇的 front matter
      - 正文从 ## 起用，一级标题留给页面本身
      - 图片单独成段时自动包成 figure，alt 之外的说明写在标题里：![](..."图注")
      - 链接、图片路径都按 posts/ 目录写（例如 assets/a.jpg、../index.html）
@@ -29,7 +30,6 @@ import { esc, readImageSize, formatDate, estimateMinutes, countStats, plainText 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const POSTS = join(ROOT, "posts");
 
-const DEFAULT_AUTHOR = "林知白";
 const DEFAULT_CATEGORY = "随笔";
 
 /* --------------------------------------------------------------------------
@@ -265,7 +265,6 @@ function build(file, index) {
     description: data.description || data.lede || plainText(body),
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
-    author: data.author || DEFAULT_AUTHOR,
     dateISO: date ? date.iso : "",
     dateText: date ? date.text : "",
     minutes: Number.isFinite(data.minutes) ? data.minutes : estimateMinutes(body),

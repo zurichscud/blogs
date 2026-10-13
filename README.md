@@ -44,7 +44,6 @@ npm run build -- posts/type-scale.md     # 也可以只生成指定的一篇
 | `lede` | 标题下面的一句话导语 |
 | `category` | 标题上方的小字（栏目），默认「随笔」 |
 | `description` | 分享卡片和搜索引擎用的一句话。不写取 `lede`，再取正文前 90 字 |
-| `author` | 默认「林知白」 |
 | `minutes` | 阅读时长。不写按 400 字 / 分钟估 |
 | `tags` | `[排版, 中文]`，或块状 `- 排版` 一行一个 |
 | `cover` / `coverAlt` / `coverCaption` | 封面图、无障碍描述、图注，都可省 |
@@ -74,7 +73,7 @@ npm run build -- posts/type-scale.md     # 也可以只生成指定的一篇
 
 - 颜色、字体、间距都在 `styles.css` 开头的变量里；正文排版看文件里「正文」那一段的 `.prose …` 规则
 - 文章页骨架在 `scripts/template.mjs`，改它等于改全站文章页
-- 站名、页脚文案、「第 014 期」这类站点常量在 `template.mjs` 的 `SITE` 对象里；首页里还有一份，两处要一起改
+- 站名、作者名、页脚文案、「第 014 期」这类站点常量在 `template.mjs` 的 `SITE` 对象里；首页里还有一份，两处要一起改
 
 ## 还没做的
 
