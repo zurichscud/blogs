@@ -8,12 +8,12 @@
 
    markdown 约定（完整示例见 posts/typesetting-basics.md）：
      - front matter 用 --- 包起来，只有 title 必填。字段：title / date / lede /
-       category / description / minutes / tags / cover / coverAlt /
-       coverCaption / coverWidth / coverHeight / draft /
+       category / description / tags / cover / coverAlt / coverCaption /
+       coverWidth / coverHeight / draft /
        prevTitle / prevUrl / nextTitle / nextUrl
-     - date 选填，写了就必须是 YYYY-MM-DD；没写的文章不显示日期，
-       在上下篇里排在有日期的后面
-     - 作者名是全站常量，在 template.mjs 的 SITE.author 里改，不写在每篇的 front matter
+     - date 选填，写了就必须是 YYYY-MM-DD。页面不显示日期，它只决定上下篇顺序；
+       没写日期的文章排在有日期的后面
+     - 页面不显示作者和阅读时长，两者只在构建日志里出现
      - 正文从 ## 起用，一级标题留给页面本身
      - 图片单独成段时自动包成 figure，alt 之外的说明写在标题里：![](..."图注")
      - 链接、图片路径都按 posts/ 目录写（例如 assets/a.jpg、../index.html）
@@ -31,6 +31,26 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const POSTS = join(ROOT, "posts");
 
 const DEFAULT_CATEGORY = "随笔";
+
+/* front matter 认得的字段，其余会提示忽略（顺手抓拼写错误） */
+const KNOWN_FIELDS = new Set([
+  "title",
+  "date",
+  "lede",
+  "category",
+  "description",
+  "tags",
+  "cover",
+  "coverAlt",
+  "coverCaption",
+  "coverWidth",
+  "coverHeight",
+  "draft",
+  "prevTitle",
+  "prevUrl",
+  "nextTitle",
+  "nextUrl",
+]);
 
 /* --------------------------------------------------------------------------
    输出
@@ -243,9 +263,13 @@ function build(file, index) {
   }
 
   if (!data.title) throw new Error("缺 title");
-  // date 选填；写了就必须是 YYYY-MM-DD
+  // date 选填；写了就必须是 YYYY-MM-DD。页面上不显示日期，它只决定上下篇顺序
   const date = data.date ? formatDate(data.date) : null;
   if (data.date && !date) throw new Error(`date 不是 YYYY-MM-DD：${data.date}`);
+
+  for (const key of Object.keys(data)) {
+    if (!KNOWN_FIELDS.has(key)) note(`不认识的字段，已忽略：${key}`);
+  }
 
   const stats = countStats(body);
   const cover = data.cover
@@ -265,9 +289,6 @@ function build(file, index) {
     description: data.description || data.lede || plainText(body),
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
-    dateISO: date ? date.iso : "",
-    dateText: date ? date.text : "",
-    minutes: Number.isFinite(data.minutes) ? data.minutes : estimateMinutes(body),
     cover,
     body: engine.parse(body).trimEnd() + "\n",
     tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [],
@@ -277,8 +298,10 @@ function build(file, index) {
   const out = join(POSTS, `${slug}.html`);
   writeFileSync(out, html);
 
-  const minutes = Number.isFinite(data.minutes) ? data.minutes : estimateMinutes(body);
-  report(file, `→ ${relative(ROOT, out)}（约 ${minutes} 分钟，${stats.cjk} 字${stats.words ? ` + ${stats.words} 词` : ""}）`);
+  report(
+    file,
+    `→ ${relative(ROOT, out)}（约 ${estimateMinutes(body)} 分钟，${stats.cjk} 字${stats.words ? ` + ${stats.words} 词` : ""}）`,
+  );
   return out;
 }
 

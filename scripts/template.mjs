@@ -14,7 +14,6 @@ const SITE = {
   zh: "页边",
   en: "Margin",
   brand: "页边 MARGIN",
-  author: "林知白",
   blurb: "一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。",
   issue: "第 014 期，2026 年 10 月",
 };
@@ -59,20 +58,7 @@ function indent(html, unit = " ".repeat(10)) {
    -------------------------------------------------------------------------- */
 
 export function renderPage(post) {
-  const {
-    title,
-    description,
-    category,
-    lede,
-    dateISO,
-    dateText,
-    minutes,
-    cover,
-    body,
-    tags = [],
-    prev = null,
-    next = null,
-  } = post;
+  const { title, description, category, lede, cover, body, tags = [], prev = null, next = null } = post;
 
   const coverHTML = cover
     ? `
@@ -164,21 +150,9 @@ ${
       ? `
           <p class="article__lede reveal" style="--reveal-delay: 110ms">
             ${esc(lede)}
-          </p>
-`
+          </p>`
       : ""
   }
-          <p class="meta article__byline reveal" style="--reveal-delay: 160ms">
-            <span>${esc(SITE.author)}</span>${
-    dateText
-      ? `
-            <span class="meta__sep" aria-hidden="true"></span>
-            <time datetime="${esc(dateISO)}">${esc(dateText)}</time>`
-      : ""
-  }
-            <span class="meta__sep" aria-hidden="true"></span>
-            <span>约 ${minutes} 分钟</span>
-          </p>
         </header>
 ${coverHTML}
         <!-- ================================================================
