@@ -167,14 +167,40 @@ function figureTag(token) {
   return `<figure>\n${imgTag(img)}${caption ? `\n<figcaption>${esc(caption)}</figcaption>` : ""}\n</figure>\n`;
 }
 
-const engine = new Marked({ gfm: true, smartypants: false, pedantic: false });
+/* 标题的锚点 id：保留中英文与数字，标点换成连字符；重名往后编号 */
+const seenIds = new Map();
 
+function headingId(text) {
+  const base =
+    String(text)
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{Letter}\p{Number}\s-]/gu, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || "sec";
+
+  const n = (seenIds.get(base) ?? 0) + 1;
+  seenIds.set(base, n);
+  return n === 1 ? base : `${base}-${n}`;
+}
+
+/* 本篇目录，渲染时顺手收集 h2 / h3 */
+let toc = [];
+
+const engine = new Marked({ gfm: true, smartypants: false, pedantic: false });
 engine.use({
   renderer: {
     heading(token) {
       const depth = Math.min(Math.max(token.depth, 2), 4);
       if (token.depth === 1) note("正文里的一级标题按二级处理：页面标题已经是 h1");
-      return `<h${depth}>${this.parser.parseInline(token.tokens ?? [])}</h${depth}>\n`;
+
+      const html = this.parser.parseInline(token.tokens ?? []);
+      const plain = this.parser.parseInline(token.tokens ?? [], this.parser.textRenderer);
+      const id = headingId(plain);
+      if (depth === 2 || depth === 3) toc.push({ level: depth, id, text: plain });
+
+      return `<h${depth} id="${esc(id)}">${html}</h${depth}>\n`;
     },
 
     paragraph(token) {
@@ -207,6 +233,15 @@ engine.use({
     },
   },
 });
+
+/* 渲染一篇正文，顺手把目录带出来 */
+function render(body) {
+  seenIds.clear();
+  toc = [];
+  const html = engine.parse(body).trimEnd() + "\n";
+  // 只有一节标题的目录没意义，不显示
+  return { body: html, toc: toc.length >= 2 ? toc : [] };
+}
 
 /* --------------------------------------------------------------------------
    上下篇
@@ -302,7 +337,7 @@ function build(file, index) {
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
     cover,
-    body: engine.parse(body).trimEnd() + "\n",
+    ...render(body),
     tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [],
     ...pager(slug, data, index),
   });

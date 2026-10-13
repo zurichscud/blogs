@@ -58,7 +58,18 @@ function indent(html, unit = " ".repeat(10)) {
    -------------------------------------------------------------------------- */
 
 export function renderPage(post) {
-  const { title, description, category, lede, cover, body, tags = [], prev = null, next = null } = post;
+  const {
+    title,
+    description,
+    category,
+    lede,
+    cover,
+    body,
+    toc = [],
+    tags = [],
+    prev = null,
+    next = null,
+  } = post;
 
   const coverHTML = cover
     ? `
@@ -68,6 +79,24 @@ export function renderPage(post) {
             alt="${esc(cover.alt)}"
           />${cover.caption ? `\n          <figcaption>${esc(cover.caption)}</figcaption>` : ""}
         </figure>
+`
+    : "";
+
+  const tocHTML = toc.length
+    ? `
+          <nav class="toc" aria-label="目录">
+            <p class="toc__title">目录</p>
+            <ol class="toc__list">
+${toc
+  .map(
+    (item) =>
+      `              <li class="toc__item toc__item--h${item.level}"><a class="toc__link" href="#${esc(item.id)}">${esc(
+        item.text,
+      )}</a></li>`,
+  )
+  .join("\n")}
+            </ol>
+          </nav>
 `
     : "";
 
@@ -156,10 +185,12 @@ ${
         </header>
 ${coverHTML}
         <!-- ================================================================
-             正文
+             正文（宽屏时右侧带目录）
              ================================================================ -->
-        <div class="prose container">
-${indent(body)}
+        <div class="article__body container">
+          <div class="prose">
+${indent(body)}          </div>
+${tocHTML}
         </div>
 
         <!-- ================================================================

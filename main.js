@@ -1,6 +1,6 @@
 /* ==========================================================================
    页边 MARGIN
-   两件事：主题切换、订阅表单的本地反馈
+   三件事：主题切换、订阅表单的本地反馈、文章目录的滚动标位
    入场动画由 CSS 承担，这里不参与
    无依赖，无构建
    ========================================================================== */
@@ -91,5 +91,52 @@
       note.textContent = "已记下。下一期在月初寄出。";
       form.reset();
     });
+  }
+
+  /* ------------------------------------------------------------------------
+     3. 文章目录
+     滚动时把正在读的一节标出来。页面上没有目录就什么都不做
+     ------------------------------------------------------------------------ */
+
+  var toc = document.querySelector(".toc");
+
+  if (toc) {
+    var links = [].slice.call(toc.querySelectorAll(".toc__link"));
+    var targets = links.map(function (link) {
+      return document.getElementById(link.getAttribute("href").slice(1));
+    });
+
+    var current = -1;
+
+    function mark(active) {
+      if (active === current) return;
+      current = active;
+      links.forEach(function (link, i) {
+        if (i === active) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    }
+
+    function update() {
+      // 吸顶报头下沿再往下一点，算作「已经读到」
+      var line = 120;
+      var active = -1;
+
+      for (var i = 0; i < targets.length; i += 1) {
+        if (targets[i] && targets[i].getBoundingClientRect().top <= line) active = i;
+      }
+
+      // 滚到底时最后一项就是当前项
+      if (window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 2) {
+        active = targets.length - 1;
+      }
+
+      mark(active);
+    }
+
+    // 滚动事件本身已按帧合并，这里直接算；不套 rAF，后台标签页里 rAF 会被暂停
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
   }
 })();
