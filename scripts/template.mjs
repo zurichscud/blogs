@@ -169,9 +169,13 @@ ${
       : ""
   }
           <p class="meta article__byline reveal" style="--reveal-delay: 160ms">
-            <span>${esc(author)}</span>
+            <span>${esc(author)}</span>${
+    dateText
+      ? `
             <span class="meta__sep" aria-hidden="true"></span>
-            <time datetime="${esc(dateISO)}">${esc(dateText)}</time>
+            <time datetime="${esc(dateISO)}">${esc(dateText)}</time>`
+      : ""
+  }
             <span class="meta__sep" aria-hidden="true"></span>
             <span>约 ${minutes} 分钟</span>
           </p>

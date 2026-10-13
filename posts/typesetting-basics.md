@@ -2,8 +2,9 @@
 # 这一篇是把手写的 article.html 回写成的 markdown，用来验证生成器：
 # 生成的 posts/typesetting-basics.html 应该和 article.html 视觉一致。
 #
-# 可用字段（除 title / date 外都可省）：
+# 可用字段（只有 title 必填）：
 #   title / date / lede / category / description / author / minutes
+#   date 选填；没写就不显示日期，上下篇里排在有日期的后面
 #   tags: [a, b]      cover / coverAlt / coverCaption
 #   coverWidth / coverHeight   远程封面没有尺寸时手动补，避免加载跳动
 #   draft: true       写入后跳过生成

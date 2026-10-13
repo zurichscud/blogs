@@ -7,9 +7,12 @@
      npm run build -- 某篇.md   只生成指定的一篇
 
    markdown 约定（完整示例见 posts/typesetting-basics.md）：
-     - front matter 用 --- 包起来，字段：title / date / lede / category /
-       description / author / minutes / tags / cover / coverAlt / coverCaption /
-       coverWidth / coverHeight / draft / prevTitle / prevUrl / nextTitle / nextUrl
+     - front matter 用 --- 包起来，只有 title 必填。字段：title / date / lede /
+       category / description / author / minutes / tags / cover / coverAlt /
+       coverCaption / coverWidth / coverHeight / draft /
+       prevTitle / prevUrl / nextTitle / nextUrl
+     - date 选填，写了就必须是 YYYY-MM-DD；没写的文章不显示日期，
+       在上下篇里排在有日期的后面
      - 正文从 ## 起用，一级标题留给页面本身
      - 图片单独成段时自动包成 figure，alt 之外的说明写在标题里：![](..."图注")
      - 链接、图片路径都按 posts/ 目录写（例如 assets/a.jpg、../index.html）
@@ -176,6 +179,8 @@ engine.use({
 /* --------------------------------------------------------------------------
    上下篇
    上一篇 = 更早发布的，下一篇 = 更新的一篇；同目录自动认，front matter 可覆盖
+   没写 date 的排在有日期的后面，内部按文件名——不用文件修改时间，
+   那东西在不同机器上不一样，会让生成结果抖来抖去
    -------------------------------------------------------------------------- */
 
 function loadIndex() {
@@ -184,11 +189,24 @@ function loadIndex() {
     .filter((f) => f.endsWith(".md"))
     .map((f) => {
       const file = join(POSTS, f);
-      const { data } = splitPost(readFileSync(file, "utf8"), file);
-      return { slug: basename(f, ".md"), title: data.title, date: formatDate(data.date), draft: data.draft === true };
+      try {
+        const { data } = splitPost(readFileSync(file, "utf8"), file);
+        const date = formatDate(data.date);
+        return {
+          slug: basename(f, ".md"),
+          title: data.title,
+          date,
+          // 会不会生成，跟 build 的校验保持一致：草稿、没标题、日期写了但不合法，
+          // 都不该出现在别人的上下篇里（那些要么被跳过，要么会报错）
+          indexable: Boolean(data.title) && !(data.date && !date) && data.draft !== true,
+        };
+      } catch {
+        // front matter 坏了就先进不了索引，等轮到它自己生成时再报错
+        return { slug: basename(f, ".md"), indexable: false };
+      }
     })
-    .filter((post) => !post.draft && post.title && post.date)
-    .sort((a, b) => b.date.sort - a.date.sort);
+    .filter((post) => post.indexable)
+    .sort((a, b) => (b.date?.sort ?? 0) - (a.date?.sort ?? 0) || a.slug.localeCompare(b.slug));
 }
 
 function pager(slug, data, index) {
@@ -225,8 +243,9 @@ function build(file, index) {
   }
 
   if (!data.title) throw new Error("缺 title");
-  const date = formatDate(data.date);
-  if (!date) throw new Error("缺 date，或者 date 不是 YYYY-MM-DD");
+  // date 选填；写了就必须是 YYYY-MM-DD
+  const date = data.date ? formatDate(data.date) : null;
+  if (data.date && !date) throw new Error(`date 不是 YYYY-MM-DD：${data.date}`);
 
   const stats = countStats(body);
   const cover = data.cover
@@ -247,8 +266,8 @@ function build(file, index) {
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
     author: data.author || DEFAULT_AUTHOR,
-    dateISO: date.iso,
-    dateText: date.text,
+    dateISO: date ? date.iso : "",
+    dateText: date ? date.text : "",
     minutes: Number.isFinite(data.minutes) ? data.minutes : estimateMinutes(body),
     cover,
     body: engine.parse(body).trimEnd() + "\n",

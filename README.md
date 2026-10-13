@@ -35,12 +35,12 @@ npm run build -- posts/type-scale.md     # 也可以只生成指定的一篇
 
 ## front matter
 
-除 `title` 和 `date` 外都可省。
+除 `title` 外都可省。
 
 | 字段 | 说明 |
 | --- | --- |
 | `title` | 必填。页面标题，也是 `<title>` |
-| `date` | 必填。`YYYY-MM-DD`，决定排序和上下篇 |
+| `date` | 选填，`YYYY-MM-DD`。写了就显示在署名行，并决定上下篇顺序；不写就不显示日期，在上下篇里排在有日期的后面（内部按文件名） |
 | `lede` | 标题下面的一句话导语 |
 | `category` | 标题上方的小字（栏目），默认「随笔」 |
 | `description` | 分享卡片和搜索引擎用的一句话。不写取 `lede`，再取正文前 90 字 |
@@ -65,9 +65,9 @@ npm run build -- posts/type-scale.md     # 也可以只生成指定的一篇
 ## 生成器做的事
 
 - front matter → 标题区、封面、文末 tags
-- 上下篇：按日期排序，**上一篇是更早的那篇，下一篇是更新的那篇**，草稿不参与；`prevTitle` / `prevUrl` 之类可以覆盖
+- 上下篇：按日期排序，**上一篇是更早的那篇，下一篇是更新的那篇**，草稿不参与；`prevTitle` / `prevUrl` 之类可以覆盖。没写 `date` 的文章排在有日期的后面
 - 本地图片读出像素宽高写进 `<img>`，远程图片不写
-- 缺 `title` / `date`、front matter 没闭合 → 这一篇报错跳过，命令以非零码退出
+- 缺 `title`、`date` 写了但不是 `YYYY-MM-DD`、front matter 没闭合 → 这一篇报错跳过，命令以非零码退出
 - 图片文件不在仓库里、或认不出尺寸 → 打印告警但照常生成
 
 ## 改样式、改骨架
