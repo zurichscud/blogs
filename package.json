@@ -1,0 +1,15 @@
+{
+  "name": "margin-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "页边 MARGIN：markdown 文章源 + 静态文章页生成脚本",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-post.mjs",
+    "new": "node scripts/new-post.mjs"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "marked": "^18.1.1"
+  }
+}
