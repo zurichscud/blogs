@@ -1237,7 +1237,6 @@ html[data-theme="dark"] .theme-toggle__dial {
 
 .article__foot {
   padding-top: clamp(32px, 4vw, 48px);
-  border-top: 3px solid var(--rule-ink);
 }
 
 .tags {
