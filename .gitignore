@@ -1,6 +1,9 @@
 # 依赖
 node_modules/
 
+# 浏览器调试留下的痕迹（截图、快照、控制台日志）
+.playwright-mcp/
+
 # 系统
 .DS_Store
 
