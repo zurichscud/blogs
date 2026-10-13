@@ -933,7 +933,7 @@ html[data-theme="dark"] .theme-toggle__dial {
 }
 
 .article__cover {
-  margin: clamp(36px, 5vw, 64px) 0 0;
+  margin-top: clamp(36px, 5vw, 64px);
   overflow: hidden;
 }
 
@@ -946,7 +946,7 @@ html[data-theme="dark"] .theme-toggle__dial {
 /* 正文 */
 
 .prose {
-  max-width: var(--measure);
+  max-width: 50rem;
   margin-top: clamp(40px, 5vw, 68px);
   padding-bottom: clamp(48px, 6vw, 80px);
   font-size: 1.06rem;
