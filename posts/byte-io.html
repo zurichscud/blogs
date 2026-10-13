@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>字节流 · 页边 MARGIN</title>
+    <meta name="description" content="文件读取 一次读取一个字节 它每次读取 1 个字节，返回 int。当读取到文件末尾时为-1 1 个字节（Byte）= 8 位（bit） 假设它是普通 ASCII/UTF-8 英文文…" />
+
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("margin-theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+        } catch (e) {
+          /* 存储不可用时保持默认纸色 */
+        }
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Noto+Serif+SC:wght@400..700&display=swap" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+
+    <!-- 阅读进度，用滚动驱动动画实现，不支持的浏览器不显示 -->
+    <div class="progress" aria-hidden="true"></div>
+
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="wordmark" href="../index.html" aria-label="页边 MARGIN 首页">
+          <span class="wordmark__zh">页边</span>
+          <span class="wordmark__en">Margin</span>
+        </a>
+
+        <nav class="nav" aria-label="主导航">
+          <a class="nav__link" href="../index.html" aria-current="page">文章</a>
+          <a class="nav__link" href="../index.html#topics">栏目</a>
+          <a class="nav__link" href="../index.html#subscribe">订阅</a>
+        </nav>
+
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换深浅色主题">
+          <span class="theme-toggle__dial" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main">
+      <article>
+        <!-- ================================================================
+             标题区
+             ================================================================ -->
+        <header class="article__head container">
+          <p class="eyebrow reveal">随笔</p>
+
+          <h1 class="article__title display reveal" style="--reveal-delay: 60ms">
+            字节流
+          </h1>
+
+        </header>
+
+        <!-- ================================================================
+             正文（宽屏时右侧带目录）
+             ================================================================ -->
+        <div class="article__body container">
+          <div class="prose">
+          <h2 id="文件读取">文件读取</h2>
+          <h3 id="一次读取一个字节">一次读取一个字节</h3>
+          <p>它每次读取 <strong>1 个字节</strong>，返回 <code>int</code>。当读取到文件末尾时为-1</p>
+          <blockquote>
+          <p>1 个字节（Byte）= 8 位（bit）</p>
+          </blockquote>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">FileInputStream in = new FileInputStream(&quot;D:/test/a.txt&quot;);
+
+int data;
+
+while ((data = in.read()) != -1) {
+    System.out.print((char) data);
+}
+
+in.close();
+</code></pre>
+          </div>
+          <p>假设它是普通 ASCII/UTF-8 英文文本，那么文件实际存储的是 <strong>5 个字节</strong>：</p>
+          <pre><code>h    e    l    l    o
+72   101  108  108  111   ← 十进制
+</code></pre>
+          <table>
+          <thead>
+          <tr>
+          <th>Unicode 字符范围</th>
+          <th>UTF-8 字节数</th>
+          <th>例子</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>ASCII 字符</td>
+          <td>1</td>
+          <td><code>A</code>、<code>h</code>、<code>1</code></td>
+          </tr>
+          <tr>
+          <td>拉丁扩展等</td>
+          <td>2</td>
+          <td><code>é</code></td>
+          </tr>
+          <tr>
+          <td>大多数中文</td>
+          <td>3</td>
+          <td><code>你</code>、<code>好</code></td>
+          </tr>
+          <tr>
+          <td>很多 Emoji</td>
+          <td>4</td>
+          <td><code>😀</code></td>
+          </tr>
+          </tbody></table>
+          <h3 id="一次读取一个字节数组">一次读取一个字节数组</h3>
+          <p>实际开发一般不会一个字节一个字节读取，而是使用缓冲区：</p>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">FileInputStream in = new FileInputStream(&quot;D:/test/a.txt&quot;);
+
+byte[] buffer = new byte[1024];//一次读取1KB
+
+int len;
+
+while ((len = in.read(buffer)) != -1) {
+    System.out.println(new String(buffer, 0, len));
+}
+
+in.close();
+</code></pre>
+          </div>
+          <h2 id="文件写入">文件写入</h2>
+          <h3 id="一次写入一个字节">一次写入一个字节</h3>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">try (FileOutputStream out =
+         new FileOutputStream(&quot;test.txt&quot;)) {
+
+    out.write(65);
+
+}
+</code></pre>
+          </div>
+          <h3 id="一次写入一个字节数组">一次写入一个字节数组</h3>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">try (FileOutputStream out =
+         new FileOutputStream(&quot;test.txt&quot;)) {
+
+    byte[] bytes = {65, 66, 67};
+
+    out.write(bytes);
+
+}
+</code></pre>
+          </div>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">byte[] bytes = &quot;hello&quot;.getBytes();
+
+try (FileOutputStream out =
+         new FileOutputStream(&quot;test.txt&quot;)) {
+
+    out.write(bytes);
+}
+</code></pre>
+          </div>
+          <h3 id="追加写入">追加写入</h3>
+          <p>默认情况下：</p>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">new FileOutputStream(&quot;test.txt&quot;)
+</code></pre>
+          </div>
+          <p>会覆盖文件。</p>
+          <p>如果要追加：</p>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">try (FileOutputStream out =
+         new FileOutputStream(&quot;test.txt&quot;, true)) {
+
+    out.write(&quot;abc&quot;.getBytes());
+
+}
+</code></pre>
+          </div>
+          <p>第二个参数<code>true</code>表示追加模式。</p>
+          <h2 id="文件复制">文件复制</h2>
+          <p>循环读写</p>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class CopyFile {
+    public static void main(String[] args) throws IOException {
+        FileInputStream fis = new FileInputStream(&quot;D:/a.zip&quot;);
+        FileOutputStream fos = new FileOutputStream(&quot;D:/backup/a.zip&quot;);
+
+        byte[] buffer = new byte[1024];
+        int len;
+
+        while ((len = fis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+        }
+
+        fos.close();
+        fis.close();
+    }
+}
+</code></pre>
+          </div>
+          <h2 id="文件夹复制">文件夹复制</h2>
+          <p> 复制整个文件夹需要<strong>递归遍历目录</strong>。</p>
+          <div class="code">
+          <span class="code__lang" aria-hidden="true">java</span>
+          <pre><code class="language-java">import java.io.*;
+
+public class CopyDir {
+
+    public static void copy(File src, File dest) throws IOException {
+
+        // 如果是文件
+        if (src.isFile()) {
+
+            try (
+                FileInputStream fis = new FileInputStream(src);
+                FileOutputStream fos = new FileOutputStream(dest)
+            ) {
+                byte[] buffer = new byte[8192];
+                int len;
+
+                while ((len = fis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, len);
+                }
+            }
+
+            return;
+        }
+
+        // 如果是目录
+        if (!dest.exists()) {
+            dest.mkdirs();
+        }
+
+        File[] files = src.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+
+                File newDest = new File(dest, file.getName());
+
+                copy(file, newDest);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        File src = new File(&quot;D:/source&quot;);
+        File dest = new File(&quot;D:/backup&quot;);
+
+        copy(src, dest);
+    }
+}
+</code></pre>
+          </div>          </div>
+
+          <nav class="toc" aria-label="目录">
+            <p class="toc__title">目录</p>
+            <ol class="toc__list">
+              <li class="toc__item toc__item--h2"><a class="toc__link" href="#文件读取">文件读取</a></li>
+              <li class="toc__item toc__item--h3"><a class="toc__link" href="#一次读取一个字节">一次读取一个字节</a></li>
+              <li class="toc__item toc__item--h3"><a class="toc__link" href="#一次读取一个字节数组">一次读取一个字节数组</a></li>
+              <li class="toc__item toc__item--h2"><a class="toc__link" href="#文件写入">文件写入</a></li>
+              <li class="toc__item toc__item--h3"><a class="toc__link" href="#一次写入一个字节">一次写入一个字节</a></li>
+              <li class="toc__item toc__item--h3"><a class="toc__link" href="#一次写入一个字节数组">一次写入一个字节数组</a></li>
+              <li class="toc__item toc__item--h3"><a class="toc__link" href="#追加写入">追加写入</a></li>
+              <li class="toc__item toc__item--h2"><a class="toc__link" href="#文件复制">文件复制</a></li>
+              <li class="toc__item toc__item--h2"><a class="toc__link" href="#文件夹复制">文件夹复制</a></li>
+            </ol>
+          </nav>
+
+        </div>
+
+        <!-- ================================================================
+             文末
+             ================================================================ -->
+        <footer class="article__foot container">
+
+          <nav class="pager" aria-label="上下篇">
+            <a class="pager__item" href="./typesetting-basics.html">
+              <span class="pager__label">下一篇</span>
+              <span class="pager__title">字号、行距与一点耐心</span>
+            </a>
+          </nav>
+        </footer>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <hr class="rule-ink" />
+      <div class="container">
+        <div class="footer__grid">
+          <div>
+            <p class="footer__title">页边</p>
+            <p class="footer__blurb">
+              一个关于排版、界面与写作的长期笔记。二〇二三年开始写，不定期更新。
+            </p>
+          </div>
+
+          <nav aria-label="页脚导航">
+            <h2 class="footer__heading">浏览</h2>
+            <div class="footer__list">
+              <a href="../index.html">文章</a>
+              <a href="../index.html#topics">栏目</a>
+              <a href="../index.html#subscribe">订阅</a>
+            </div>
+          </nav>
+
+          <div>
+            <h2 class="footer__heading">订阅渠道</h2>
+            <div class="footer__list">
+              <a href="../index.html#subscribe">邮件</a>
+              <a href="../index.html#subscribe">RSS</a>
+              <a href="../index.html#subscribe">GitHub</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__baseline">
+          <span>© 2026 页边</span>
+          <span>第 014 期，2026 年 10 月</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../main.js" defer></script>
+  </body>
+</html>
