@@ -1075,6 +1075,11 @@ html[data-theme="dark"] .theme-toggle__dial {
   padding: 0.15em 0.4em;
 }
 
+/* 暗色模式：行内代码字色改用强调色，代码块里的 code 不受影响 */
+html[data-theme="dark"] .prose code:not(pre code) {
+  color: var(--accent);
+}
+
 .prose pre {
   background-color: var(--paper-deep);
   padding: 1.3rem 1.4rem;
