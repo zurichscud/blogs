@@ -1093,6 +1093,27 @@ html[data-theme="dark"] .theme-toggle__dial {
   font-size: 1em;
 }
 
+/* 带语言的代码块：右上角一个小标签，标签那一条不参与选中，复制代码不会带上它 */
+.prose .code {
+  position: relative;
+}
+
+.prose .code pre {
+  padding-top: 2.5rem;
+}
+
+.prose .code__lang {
+  position: absolute;
+  top: 0.8rem;
+  right: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  user-select: none;
+  pointer-events: none;
+}
+
 .prose figure {
   margin-top: 2.2em;
 }

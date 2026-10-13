@@ -187,6 +187,18 @@ engine.use({
       return imgTag(token);
     },
 
+    /* 代码块：有语言就在右上角标出来（标签不参与选中，复制代码不会带上它） */
+    code(token) {
+      const lang = (token.lang || "").trim().split(/\s+/)[0] || "";
+      const text = `${String(token.text ?? "").replace(/\n+$/, "")}\n`;
+      const pre = `<pre><code${lang ? ` class="language-${esc(lang)}"` : ""}>${
+        token.escaped ? text : esc(text)
+      }</code></pre>`;
+
+      if (!lang) return `${pre}\n`;
+      return `<div class="code">\n<span class="code__lang" aria-hidden="true">${esc(lang)}</span>\n${pre}\n</div>\n`;
+    },
+
     link(token) {
       const href = /\.md$/i.test(token.href) ? token.href.replace(/\.md$/i, ".html") : token.href;
       return `<a href="${esc(href)}"${token.title ? ` title="${esc(token.title)}"` : ""}>${this.parser.parseInline(
