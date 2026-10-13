@@ -1,6 +1,6 @@
 /* ==========================================================================
    页边 MARGIN
-   三件事：主题切换、订阅表单的本地反馈、文章目录的滚动标位
+   四件事：主题切换、订阅表单的本地反馈、文章目录的滚动标位、代码块复制
    入场动画由 CSS 承担，这里不参与
    无依赖，无构建
    ========================================================================== */
@@ -138,5 +138,76 @@
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     update();
+  }
+
+  /* ------------------------------------------------------------------------
+     4. 代码块的复制按钮
+     安全上下文用 clipboard API；file:// 或 http 下退回 execCommand
+     ------------------------------------------------------------------------ */
+
+  var copyButtons = [].slice.call(document.querySelectorAll("[data-copy-code]"));
+
+  if (copyButtons.length) {
+    function fallbackCopy(text, done) {
+      var area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.top = "-1000px";
+      document.body.appendChild(area);
+      area.select();
+      area.setSelectionRange(0, text.length);
+
+      var ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch (e) {
+        ok = false;
+      }
+
+      document.body.removeChild(area);
+      done(ok);
+    }
+
+    function writeClipboard(text, done) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(
+          function () {
+            done(true);
+          },
+          function () {
+            fallbackCopy(text, done);
+          },
+        );
+        return;
+      }
+      fallbackCopy(text, done);
+    }
+
+    copyButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var block = button.closest(".code");
+        var code = block && block.querySelector("code");
+        if (!code) return;
+
+        // 只复制代码本身，不含语言标签和按钮；末尾那个换行不留
+        var text = code.textContent.replace(/\n$/, "");
+
+        writeClipboard(text, function (ok) {
+          // 图标按钮没法显示文字，成功就换成对勾，同时把状态写进无障碍标签
+          if (ok) {
+            button.setAttribute("data-copied", "");
+            button.setAttribute("aria-label", "已复制");
+          } else {
+            button.setAttribute("aria-label", "复制失败，请手动选择代码");
+          }
+
+          window.setTimeout(function () {
+            button.removeAttribute("data-copied");
+            button.setAttribute("aria-label", "复制代码");
+          }, 1600);
+        });
+      });
+    });
   }
 })();

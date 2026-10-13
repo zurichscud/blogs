@@ -915,13 +915,13 @@ html[data-theme="dark"] .theme-toggle__dial {
 }
 
 .article__title {
-  font-size: clamp(1.9rem, 4.4vw, 3.15rem);
+  font-size: clamp(1.7rem, 3.85vw, 2.72rem);
   margin-top: 1.1rem;
 }
 
 .article__lede {
   margin-top: 1.2rem;
-  font-size: 1.06rem;
+  font-size: 0.94rem;
   line-height: 1.86;
   color: var(--ink-soft);
 }
@@ -949,7 +949,7 @@ html[data-theme="dark"] .theme-toggle__dial {
   max-width: 50rem;
   margin-top: clamp(40px, 5vw, 68px);
   padding-bottom: clamp(48px, 6vw, 80px);
-  font-size: 1.06rem;
+  font-size: 0.94rem;
   line-height: 1.95;
   letter-spacing: 0.012em;
 }
@@ -963,41 +963,38 @@ html[data-theme="dark"] .theme-toggle__dial {
 }
 
 .prose > p:first-of-type {
-  font-size: 1.16rem;
+  font-size: 1.02rem;
   color: var(--ink);
 }
 
-.prose h2 {
-  font-family: var(--font-display);
-  font-size: clamp(1.35rem, 2.6vw, 1.75rem);
-  font-weight: 500;
+/* 标题：h2 和 h3 同款（无衬线加粗），只靠前面的井号数量区分层级 */
+.prose h2,
+.prose h3 {
+  font-family: var(--font-body);
+  font-size: clamp(1.13rem, 2.1vw, 1.43rem);
+  font-weight: 700;
   line-height: 1.4;
   margin-top: 2.6em;
   margin-bottom: -0.3em;
   color: var(--ink);
 }
 
-.prose h2::before {
-  content: "";
-  display: block;
-  width: 2.4rem;
-  height: 2px;
-  background-color: var(--accent);
-  margin-bottom: 1rem;
+.prose h2::before,
+.prose h3::before {
+  color: var(--accent);
+  margin-right: 0.22em;
 }
 
-.prose h3 {
-  font-family: var(--font-display);
-  font-size: clamp(1.12rem, 2vw, 1.3rem);
-  font-weight: 500;
-  line-height: 1.5;
-  margin-top: 2.3em;
-  margin-bottom: -0.4em;
-  color: var(--ink);
+.prose h2::before {
+  content: "##";
+}
+
+.prose h3::before {
+  content: "###";
 }
 
 .prose h4 {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.6;
   margin-top: 2em;
@@ -1030,7 +1027,7 @@ html[data-theme="dark"] .theme-toggle__dial {
   padding-left: 1.5rem;
   border-left: 2px solid var(--accent);
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   line-height: 1.66;
   color: var(--ink);
 }
@@ -1080,10 +1077,9 @@ html[data-theme="dark"] .theme-toggle__dial {
 
 .prose pre {
   background-color: var(--paper-deep);
-  border-left: 2px solid var(--rule-ink);
   padding: 1.3rem 1.4rem;
   overflow-x: auto;
-  font-size: 0.86rem;
+  font-size: 0.77rem;
   line-height: 1.85;
 }
 
@@ -1093,7 +1089,8 @@ html[data-theme="dark"] .theme-toggle__dial {
   font-size: 1em;
 }
 
-/* 带语言的代码块：右上角一个小标签，标签那一条不参与选中，复制代码不会带上它 */
+/* 代码块：右上角一个复制按钮（图标），绝对定位在代码区上面留出的那一条里。
+   按钮不参与选中，复制代码不会带上它 */
 .prose .code {
   position: relative;
 }
@@ -1102,16 +1099,38 @@ html[data-theme="dark"] .theme-toggle__dial {
   padding-top: 2.5rem;
 }
 
-.prose .code__lang {
+.prose .code__copy {
   position: absolute;
-  top: 0.8rem;
-  right: 1.1rem;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
+  top: 0.65rem;
+  right: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
   color: var(--muted);
-  user-select: none;
-  pointer-events: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.prose .code__copy:hover,
+.prose .code__copy[data-copied] {
+  color: var(--accent);
+}
+
+.prose .code__copy-done {
+  display: none;
+}
+
+.prose .code__copy[data-copied] .code__copy-icon {
+  display: none;
+}
+
+.prose .code__copy[data-copied] .code__copy-done {
+  display: block;
 }
 
 .prose figure {
@@ -1183,7 +1202,7 @@ html[data-theme="dark"] .theme-toggle__dial {
   margin-left: -1px;
   padding-left: 0.9rem;
   border-left: 2px solid transparent;
-  font-size: 0.82rem;
+  font-size: 0.73rem;
   line-height: 1.55;
   color: var(--muted);
   text-decoration: none;
@@ -1212,7 +1231,7 @@ html[data-theme="dark"] .theme-toggle__dial {
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.94rem;
+  font-size: 0.85rem;
   line-height: 1.7;
 }
 
@@ -1286,7 +1305,7 @@ html[data-theme="dark"] .theme-toggle__dial {
 
 .pager__title {
   font-family: var(--font-display);
-  font-size: clamp(1.02rem, 1.7vw, 1.24rem);
+  font-size: clamp(0.92rem, 1.5vw, 1.11rem);
   line-height: 1.5;
   transition: color var(--dur-fast) var(--ease);
 }
@@ -1454,6 +1473,7 @@ html[data-theme="dark"] .theme-toggle__dial {
   .subscribe,
   .pager,
   .toc,
+  .code__copy,
   .theme-toggle {
     display: none;
   }

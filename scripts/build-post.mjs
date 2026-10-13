@@ -2,9 +2,12 @@
 /* ==========================================================================
    页边 MARGIN · 文章页生成
    --------------------------------------------------------------------------
-   用法：
-     npm run build              生成 posts/ 下的全部文章
-     npm run build -- 某篇.md   只生成指定的一篇
+   这一份既是库（vite.config.js 调它现算页面），也是命令行：
+     npm run gen                 把文章页写到 dist/posts/（不打包，便于对账）
+     npm run gen -- --out 目录   换一个输出目录
+     npm run gen -- 某篇.md      只生成指定的一篇
+   posts/ 下只放 md，生成的 .html 不再落回仓库；发布产物一律在 dist/
+   （npm run dev / npm run build 会直接调这里的 renderPost，不经过磁盘）
 
    markdown 约定（完整示例见 posts/typesetting-basics.md）：
      - front matter 用 --- 包起来，只有 title 必填。字段：title / date / lede /
@@ -20,8 +23,8 @@
      - 需要精确控制某个片段时，可以直接在 md 里写 HTML，原样输出
    ========================================================================== */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { join, dirname, basename, resolve, isAbsolute, relative } from "node:path";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
+import { join, dirname, basename, resolve, isAbsolute, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked } from "marked";
 import { renderPage } from "./template.mjs";
@@ -61,9 +64,16 @@ let notes = [];
 const note = (text) => notes.push(text);
 const short = (file) => relative(ROOT, file);
 
+/* 渲染过程攒下的告警（缺图、不认识的字段…），由调用方决定怎么处理 */
+export function takeNotes() {
+  const out = notes;
+  notes = [];
+  return out;
+}
+
 function report(file, message) {
   console.log(`  ${short(file)}：${message}`);
-  for (const n of notes) console.log(`    · ${n}`);
+  for (const n of takeNotes()) console.log(`    · ${n}`);
   notes = [];
 }
 
@@ -137,11 +147,14 @@ function splitPost(raw, file) {
    正文渲染
    -------------------------------------------------------------------------- */
 
-/* 图片在仓库里的真实尺寸；远程地址和根路径不查 */
+/* 图片在仓库里的真实尺寸；远程地址和根路径不查，相对路径按当前文章目录算 */
+let mediaBase = POSTS;
+
 function localSize(href) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith("//") || href.startsWith("/")) return null;
 
-  const file = join(POSTS, decodeURIComponent(href.split("#")[0].split("?")[0]));
+  // mediaBase 是这篇文章所在的目录：顶层文章就是 posts/，分类文章是 posts/io/ 之类
+  const file = join(mediaBase, decodeURIComponent(href.split("#")[0].split("?")[0]));
   if (!existsSync(file)) {
     note(`图片文件不在仓库里，页面能引用但会 404：${href}`);
     return null;
@@ -188,6 +201,9 @@ function headingId(text) {
 /* 本篇目录，渲染时顺手收集 h2 / h3 */
 let toc = [];
 
+/* 复制按钮的两个图标：默认是「复制」，点过之后换成对勾 */
+const COPY_ICONS = `<svg class="code__copy-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="code__copy-done" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+
 const engine = new Marked({ gfm: true, smartypants: false, pedantic: false });
 engine.use({
   renderer: {
@@ -213,16 +229,16 @@ engine.use({
       return imgTag(token);
     },
 
-    /* 代码块：有语言就在右上角标出来（标签不参与选中，复制代码不会带上它） */
+    /* 代码块：右上角一个复制按钮。语言不再显示，language-xx 类留着，将来接高亮时现成 */
     code(token) {
       const lang = (token.lang || "").trim().split(/\s+/)[0] || "";
       const text = `${String(token.text ?? "").replace(/\n+$/, "")}\n`;
       const pre = `<pre><code${lang ? ` class="language-${esc(lang)}"` : ""}>${
         token.escaped ? text : esc(text)
       }</code></pre>`;
+      const button = `<button class="code__copy" type="button" data-copy-code aria-label="复制代码">${COPY_ICONS}</button>`;
 
-      if (!lang) return `${pre}\n`;
-      return `<div class="code">\n<span class="code__lang" aria-hidden="true">${esc(lang)}</span>\n${pre}\n</div>\n`;
+      return `<div class="code">\n${button}\n${pre}\n</div>\n`;
     },
 
     link(token) {
@@ -234,10 +250,11 @@ engine.use({
   },
 });
 
-/* 渲染一篇正文，顺手把目录带出来 */
-function render(body) {
+/* 正文渲染：见到的相对路径都按这篇文章所在目录算 */
+function render(body, baseDir = POSTS) {
   seenIds.clear();
   toc = [];
+  mediaBase = baseDir;
   const html = engine.parse(body).trimEnd() + "\n";
   // 只有一节标题的目录没意义，不显示
   return { body: html, toc: toc.length >= 2 ? toc : [] };
@@ -250,17 +267,14 @@ function render(body) {
    那东西在不同机器上不一样，会让生成结果抖来抖去
    -------------------------------------------------------------------------- */
 
-function loadIndex() {
-  if (!existsSync(POSTS)) return [];
-  return readdirSync(POSTS)
-    .filter((f) => f.endsWith(".md"))
-    .map((f) => {
-      const file = join(POSTS, f);
+export function loadIndex() {
+  return listPostFiles()
+    .map((file) => {
       try {
         const { data } = splitPost(readFileSync(file, "utf8"), file);
         const date = formatDate(data.date);
         return {
-          slug: basename(f, ".md"),
+          slug: slugOf(file),
           title: data.title,
           date,
           // 会不会生成，跟 build 的校验保持一致：草稿、没标题、日期写了但不合法，
@@ -269,7 +283,7 @@ function loadIndex() {
         };
       } catch {
         // front matter 坏了就先进不了索引，等轮到它自己生成时再报错
-        return { slug: basename(f, ".md"), indexable: false };
+        return { slug: slugOf(file), indexable: false };
       }
     })
     .filter((post) => post.indexable)
@@ -284,10 +298,10 @@ function pager(slug, data, index) {
   let next = manual(data.nextTitle, data.nextUrl);
 
   if (!prev && at !== -1 && at + 1 < index.length) {
-    prev = { title: index[at + 1].title, url: `./${index[at + 1].slug}.html` };
+    prev = { title: index[at + 1].title, url: pageUrl(slug, index[at + 1].slug) };
   }
   if (!next && at > 0) {
-    next = { title: index[at - 1].title, url: `./${index[at - 1].slug}.html` };
+    next = { title: index[at - 1].title, url: pageUrl(slug, index[at - 1].slug) };
   }
 
   return {
@@ -300,14 +314,70 @@ function pager(slug, data, index) {
    生成一篇
    -------------------------------------------------------------------------- */
 
-function build(file, index) {
-  const slug = basename(file, ".md");
+/* posts/ 下所有 md（含分类子目录），跳过 assets/ 与点目录 */
+export function listPostFiles() {
+  if (!existsSync(POSTS)) return [];
+
+  const out = [];
+  const walk = (dir) => {
+    const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+    for (const entry of entries) {
+      if (entry.name.startsWith(".")) continue;
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== "assets") walk(full);
+      } else if (entry.name.endsWith(".md")) {
+        out.push(full);
+      }
+    }
+  };
+
+  walk(POSTS);
+  return out;
+}
+
+/* md 在 posts/ 里的位置（去掉 .md）：既是页面地址，也是产物里的目录结构 */
+export function slugOf(file) {
+  return relative(POSTS, file).split(sep).join("/").slice(0, -".md".length);
+}
+
+/* 从一个页面到另一个页面的相对地址，跨目录也算得对 */
+function pageUrl(fromSlug, toSlug) {
+  const from = fromSlug.split("/").slice(0, -1); // 当前页所在目录
+  const to = toSlug.split("/");
+  let same = 0;
+  while (same < from.length && same < to.length - 1 && from[same] === to[same]) same += 1;
+
+  const up = "../".repeat(from.length - same);
+  return `${up || "./"}${to.slice(same).join("/")}.html`;
+}
+
+/* 会出版面的文章：草稿不算。html 是「虚拟路径」——它不在磁盘上，
+   只是给 Vite 当入口 id，决定产物落在 dist/posts/<slug>.html */
+export function listPages() {
+  return listPostFiles()
+    .filter((file) => {
+      try {
+        const { data } = splitPost(readFileSync(file, "utf8"), file);
+        return data.draft !== true;
+      } catch {
+        // front matter 坏了也留在列表里：轮到它时报错，别悄悄跳过
+        return true;
+      }
+    })
+    .map((file) => {
+      const slug = slugOf(file);
+      return { file, slug, html: join(POSTS, `${slug}.html`) };
+    });
+}
+
+/* md → 页面 HTML。草稿返回 null；校验不过就抛错。不写磁盘 */
+export function renderPost(file, index = loadIndex()) {
+  const slug = slugOf(file);
+  const baseDir = dirname(file);
   const { data, body } = splitPost(readFileSync(file, "utf8"), file);
 
-  if (data.draft === true) {
-    report(file, "draft: true，跳过");
-    return null;
-  }
+  if (data.draft === true) return null;
 
   if (!data.title) throw new Error("缺 title");
   // date 选填；写了就必须是 YYYY-MM-DD。页面上不显示日期，它只决定上下篇顺序
@@ -319,6 +389,7 @@ function build(file, index) {
   }
 
   const stats = countStats(body);
+  mediaBase = baseDir;
   const cover = data.cover
     ? {
         src: data.cover,
@@ -337,27 +408,24 @@ function build(file, index) {
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
     cover,
-    ...render(body),
+    // 页面比 posts/ 深几层，站内相对路径就往上退几层（posts/io/x → ../../）
+    prefix: "../".repeat(slug.split("/").length),
+    ...render(body, baseDir),
     tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [],
     ...pager(slug, data, index),
   });
 
-  const out = join(POSTS, `${slug}.html`);
-  writeFileSync(out, html);
-
-  report(
-    file,
-    `→ ${relative(ROOT, out)}（约 ${estimateMinutes(body)} 分钟，${stats.cjk} 字${stats.words ? ` + ${stats.words} 词` : ""}）`,
-  );
-  return out;
+  // 只统计，不落盘；渲染时长这类信息交给调用方写日志
+  return { slug, html, minutes: estimateMinutes(body), stats };
 }
 
 /* --------------------------------------------------------------------------
-   命令行
+   命令行：把页面写到目录里（默认 dist/posts，仓库里不留生成物）
    -------------------------------------------------------------------------- */
 
-const USAGE = `用法：npm run build [-- 文章.md …]
-  不带参数：生成 posts/ 下的全部 md
+const USAGE = `用法：npm run gen [-- --out 目录] [文章.md …]
+  不带参数：生成 posts/ 下全部 md，输出到 dist/posts
+  --out 目录：换输出目录
   带参数：  只生成指定文件（相对仓库根目录，或写绝对路径）
 `;
 
@@ -368,9 +436,26 @@ function main() {
     return;
   }
 
+  let outDir = join(ROOT, "dist", "posts");
+  const rest = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === "--out") {
+      const value = args[i + 1];
+      if (!value) {
+        console.error("--out 后面要跟一个目录");
+        process.exitCode = 1;
+        return;
+      }
+      outDir = isAbsolute(value) ? value : resolve(ROOT, value);
+      i += 1;
+    } else {
+      rest.push(args[i]);
+    }
+  }
+
   let files;
-  if (args.length) {
-    files = args.map((arg) => (isAbsolute(arg) ? arg : resolve(ROOT, arg)));
+  if (rest.length) {
+    files = rest.map((arg) => (isAbsolute(arg) ? arg : resolve(ROOT, arg)));
     const missing = files.filter((file) => !existsSync(file));
     if (missing.length) {
       console.error(`找不到文件：${missing.map(short).join("、")}`);
@@ -378,28 +463,36 @@ function main() {
       return;
     }
   } else {
-    if (!existsSync(POSTS)) {
-      console.error("没有 posts/ 目录");
-      process.exitCode = 1;
+    files = listPostFiles();
+    if (!files.length) {
+      console.log("posts/ 下还没有 md");
       return;
     }
-    files = readdirSync(POSTS)
-      .filter((f) => f.endsWith(".md"))
-      .sort()
-      .map((f) => join(POSTS, f));
   }
 
-  if (!files.length) {
-    console.log("posts/ 下还没有 md");
-    return;
-  }
+  mkdirSync(outDir, { recursive: true });
 
   const index = loadIndex();
   let built = 0;
 
   for (const file of files) {
     try {
-      if (build(file, index)) built += 1;
+      const page = renderPost(file, index);
+      if (!page) {
+        report(file, "draft: true，跳过");
+        continue;
+      }
+
+      const out = join(outDir, `${page.slug}.html`);
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, page.html);
+      built += 1;
+      report(
+        file,
+        `→ ${relative(ROOT, out)}（约 ${page.minutes} 分钟，${page.stats.cjk} 字${
+          page.stats.words ? ` + ${page.stats.words} 词` : ""
+        }）`,
+      );
     } catch (error) {
       report(file, `生成失败：${error.message}`);
       process.exitCode = 1;
@@ -409,4 +502,7 @@ function main() {
   console.log(`\n共 ${files.length} 篇，生成 ${built} 页`);
 }
 
-main();
+/* 被 vite.config.js import 时不跑命令行 */
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}

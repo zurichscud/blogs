@@ -7,4 +7,8 @@ node_modules/
 # 系统
 .DS_Store
 
-# 生成的 HTML 是要发布的产物，照常提交，不在这里忽略
+# Vite 的构建输出：部署 dist/，它本身不进仓库
+dist/
+
+# 文章页是现算的（vite.config.js 的 postPages），posts/ 里只放 md
+posts/**/*.html

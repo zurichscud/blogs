@@ -5,11 +5,15 @@
   "description": "页边 MARGIN：markdown 文章源 + 静态文章页生成脚本",
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-post.mjs",
+    "dev": "vite",
+    "gen": "node scripts/build-post.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
     "new": "node scripts/new-post.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
-    "marked": "^18.1.1"
+    "marked": "^18.1.1",
+    "vite": "^8.3.4"
   }
 }

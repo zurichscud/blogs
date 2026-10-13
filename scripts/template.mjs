@@ -2,12 +2,11 @@
    页边 MARGIN · 文章页模板
    --------------------------------------------------------------------------
    结构与 article.html（手写版）保持一致，改这里等于改全站文章页。
-   生成的页面放在 posts/ 下，所以站内相对路径统一带 ../ 前缀。
+   页面放在 posts/ 下（可以有分类子目录），站内相对路径靠 prefix 往上退：
+   顶层文章 ../，posts/io/ 下的文章 ../../
    ========================================================================== */
 
 import { esc } from "./util.mjs";
-
-const HOME = "../index.html";
 
 /* 站点常量，与 index.html 的报头、页脚对齐 */
 const SITE = {
@@ -69,7 +68,11 @@ export function renderPage(post) {
     tags = [],
     prev = null,
     next = null,
+    // 页面比 posts/ 深几层就要往上退几层：顶层文章 ../，posts/io/ 下的 ../../ 
+    prefix = "../",
   } = post;
+
+  const HOME = `${prefix}index.html`;
 
   const coverHTML = cover
     ? `
@@ -135,7 +138,7 @@ ${tags.map((t) => `            <a class="tag" href="${HOME}#topics">${esc(t)}</a
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="${FONTS}" />
-    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="${prefix}styles.css" />
   </head>
 
   <body>
@@ -238,7 +241,7 @@ ${tocHTML}
       </div>
     </footer>
 
-    <script src="../main.js" defer></script>
+    <script type="module" src="${prefix}main.js"></script>
   </body>
 </html>
 `;
