@@ -10,14 +10,17 @@
    （npm run dev / npm run build 会直接调这里的 renderPost，不经过磁盘）
 
    markdown 约定（完整示例见 posts/typesetting-basics.md）：
-     - front matter 用 --- 包起来，只有 title 必填。字段：title / date / lede /
-       category / description / tags / cover / coverAlt / coverCaption /
-       coverWidth / coverHeight / draft /
+     - front matter 可以整段不写；写了的话用 --- 包起来，只有 title 必填。字段：
+       title / date / lede / category / description / tags / cover / coverAlt /
+       coverCaption / coverWidth / coverHeight / draft /
        prevTitle / prevUrl / nextTitle / nextUrl
+     - 页面标题的来路：front matter 的 title → 正文里第一个一级标题（# 标题，
+       它当了页面标题就不再出现在正文里）→ 文件名（去掉 .md）
      - date 选填，写了就必须是 YYYY-MM-DD。页面不显示日期，它只决定上下篇顺序；
        没写日期的文章排在有日期的后面
      - 页面不显示作者和阅读时长，两者只在构建日志里出现
-     - 正文从 ## 起用，一级标题留给页面本身
+     - 正文从 ## 起用，一级标题留给页面本身（front matter 没写 title 时，正文
+       里的第一个一级标题就是页面标题）
      - 图片单独成段时自动包成 figure，alt 之外的说明写在标题里：![](..."图注")
      - 链接、图片路径都按 posts/ 目录写（例如 assets/a.jpg、../index.html）
      - 需要精确控制某个片段时，可以直接在 md 里写 HTML，原样输出
@@ -26,7 +29,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname, basename, resolve, isAbsolute, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Marked } from "marked";
+import { Marked, Parser, TextRenderer } from "marked";
 import { renderPage } from "./template.mjs";
 import { esc, readImageSize, formatDate, estimateMinutes, countStats, plainText } from "./util.mjs";
 
@@ -130,16 +133,20 @@ function parseFrontMatter(source, file) {
   return data;
 }
 
+/* 正文统一收边：开头的空行去掉，结尾收敛成一个换行 */
+const asBody = (text) => `${text.replace(/^\n+/, "").replace(/\s+$/, "")}\n`;
+
+/* front matter 可以整段省掉：不以 --- 开头的 md，正文从头算起 */
 function splitPost(raw, file) {
   const text = raw.replace(/\r\n?/g, "\n");
-  if (!text.startsWith("---\n")) throw new Error("开头缺少 front matter（--- 包起来的那一段）");
+  if (!text.startsWith("---\n")) return { data: {}, body: asBody(text) };
 
   const end = text.indexOf("\n---", 3);
   if (end === -1) throw new Error("front matter 没有闭合，结尾缺一行 ---");
 
   return {
     data: parseFrontMatter(text.slice(4, end), file),
-    body: text.slice(end + 4).replace(/^\n+/, "").replace(/\s+$/, "") + "\n",
+    body: asBody(text.slice(end + 4)),
   };
 }
 
@@ -250,12 +257,48 @@ engine.use({
   },
 });
 
-/* 正文渲染：见到的相对路径都按这篇文章所在目录算 */
-function render(body, baseDir = POSTS) {
+/* --------------------------------------------------------------------------
+   标题
+   front matter 的 title → 正文里第一个一级标题 → 文件名（去掉 .md）
+   -------------------------------------------------------------------------- */
+
+/* 只读纯文本的解析器：标题文字里不该留下 **强调** 之类的记号 */
+const plainRenderer = new TextRenderer();
+const plainParser = new Parser(engine.defaults);
+const plainInline = (tokens) => plainParser.parseInline(tokens ?? [], plainRenderer);
+
+/* 正文里第一个一级标题；`#` 写在代码块里不算，交给 lexer 认 */
+function firstHeading1(body) {
+  const tokens = engine.lexer(body);
+  return tokens.find((token) => token.type === "heading" && token.depth === 1) ?? null;
+}
+
+function resolveTitle(file, data, body) {
+  if (data.title) return { title: data.title, from: "title" };
+
+  const h1 = firstHeading1(body);
+  const text = h1 ? plainInline(h1.tokens) : "";
+  // raw 是那一行标题在 md 里的原文，description 兜底时要用它把标题从正文里摘掉
+  if (text) return { title: text, from: "h1", raw: h1.raw };
+
+  // 两条退路都没有，就用文件名顶着（生成时会打印一句）
+  return { title: basename(file, ".md"), from: "file" };
+}
+
+/* 正文渲染：见到的相对路径都按这篇文章所在目录算。
+   dropTitle：页面的标题已经取自正文里的第一个一级标题，那一个就不要再出现了 */
+function render(body, baseDir = POSTS, { dropTitle = false } = {}) {
   seenIds.clear();
   toc = [];
   mediaBase = baseDir;
-  const html = engine.parse(body).trimEnd() + "\n";
+
+  const tokens = engine.lexer(body);
+  if (dropTitle) {
+    const at = tokens.findIndex((token) => token.type === "heading" && token.depth === 1);
+    if (at !== -1) tokens.splice(at, 1);
+  }
+
+  const html = engine.parser(tokens).trimEnd() + "\n";
   // 只有一节标题的目录没意义，不显示
   return { body: html, toc: toc.length >= 2 ? toc : [] };
 }
@@ -271,15 +314,15 @@ export function loadIndex() {
   return listPostFiles()
     .map((file) => {
       try {
-        const { data } = splitPost(readFileSync(file, "utf8"), file);
+        const { data, body } = splitPost(readFileSync(file, "utf8"), file);
         const date = formatDate(data.date);
         return {
           slug: slugOf(file),
-          title: data.title,
+          title: resolveTitle(file, data, body).title,
           date,
-          // 会不会生成，跟 build 的校验保持一致：草稿、没标题、日期写了但不合法，
+          // 会不会生成，跟 build 的校验保持一致：草稿、日期写了但不合法，
           // 都不该出现在别人的上下篇里（那些要么被跳过，要么会报错）
-          indexable: Boolean(data.title) && !(data.date && !date) && data.draft !== true,
+          indexable: !(data.date && !date) && data.draft !== true,
         };
       } catch {
         // front matter 坏了就先进不了索引，等轮到它自己生成时再报错
@@ -379,7 +422,10 @@ export function renderPost(file, index = loadIndex()) {
 
   if (data.draft === true) return null;
 
-  if (!data.title) throw new Error("缺 title");
+  const { title, from, raw } = resolveTitle(file, data, body);
+  if (from === "file") note(`没有 title，正文里也没有一级标题，页面标题先用了文件名：${title}`);
+  // 已经当页面标题的那一行不再进 description 的兜底，免得简介从标题开始重复
+  const rest = raw ? body.replace(raw, "") : body;
   // date 选填；写了就必须是 YYYY-MM-DD。页面上不显示日期，它只决定上下篇顺序
   const date = data.date ? formatDate(data.date) : null;
   if (data.date && !date) throw new Error(`date 不是 YYYY-MM-DD：${data.date}`);
@@ -403,14 +449,14 @@ export function renderPost(file, index = loadIndex()) {
     : null;
 
   const html = renderPage({
-    title: data.title,
-    description: data.description || data.lede || plainText(body),
+    title,
+    description: data.description || data.lede || plainText(rest),
     category: data.category || DEFAULT_CATEGORY,
     lede: data.lede || "",
     cover,
     // 页面比 posts/ 深几层，站内相对路径就往上退几层（posts/io/x → ../../）
     prefix: "../".repeat(slug.split("/").length),
-    ...render(body, baseDir),
+    ...render(body, baseDir, { dropTitle: !data.title }),
     tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [],
     ...pager(slug, data, index),
   });

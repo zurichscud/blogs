@@ -2,7 +2,8 @@
 # 这一篇是把手写的 article.html 回写成的 markdown，用来验证生成器：
 # 生成的 posts/typesetting-basics.html 应该和 article.html 视觉一致。
 #
-# 可用字段（只有 title 必填）：
+# 可用字段（title 之外都可省；整段 front matter 也能不写：标题取正文里第一个
+#   一级标题，没有就用文件名）：
 #   title / date / lede / category / description
 #   date 选填；页面不显示日期，它只决定上下篇顺序
 #   tags: [a, b]      cover / coverAlt / coverCaption
