@@ -28,12 +28,14 @@
        不在页面上显示，未标语言的块保持纯文本
      - 引用块第一行写 [!NOTE]（另有 TIP / IMPORTANT / WARNING / CAUTION）时，整块
        渲染成提示块；标记之后的内容照常按 markdown 解析
+     - 引用块第一行写 [+] 标题 时，整块渲染成折叠面板（details / summary），
+       标题按行内 markdown 解析，其余照常
    ========================================================================== */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname, basename, resolve, isAbsolute, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Marked, Parser, TextRenderer } from "marked";
+import { Marked, Parser, TextRenderer, Lexer } from "marked";
 import hljs from "highlight.js/lib/core";
 import bash from "highlight.js/lib/languages/bash";
 import c from "highlight.js/lib/languages/c";
@@ -342,6 +344,31 @@ function calloutOf(tokens) {
   return { type: m[1].toLowerCase(), tokens: engine.lexer(rest) };
 }
 
+/* --------------------------------------------------------------------------
+   折叠面板
+   引用块的第一行写成 > [+] 标题 的，整块转成 details / summary：
+   标题 = 标记之后到行尾的内容，按行内 markdown 解析；
+   其余是面板正文，照常按 markdown 解析（列表、代码都能写）
+   -------------------------------------------------------------------------- */
+
+/* 标记后面要跟标题文字（[+] 后面空着，或者顶格写 [+]标题 的，都按普通引用处理） */
+const ACCORDION_RE = /^\[\+\](?:[ \t]+([^\n]*))?(?:\n|$)/;
+
+function accordionOf(tokens) {
+  const first = tokens?.[0];
+  if (first?.type !== "paragraph") return null;
+
+  const raw = first.raw ?? "";
+  const m = ACCORDION_RE.exec(raw);
+  if (!m) return null;
+
+  const title = (m[1] ?? "").trim();
+  if (!title) return null;
+
+  const rest = raw.slice(m[0].length) + tokens.slice(1).map((token) => token.raw ?? "").join("");
+  return { title, tokens: engine.lexer(rest) };
+}
+
 const engine = new Marked({ gfm: true, smartypants: false, pedantic: false });
 engine.use({
   renderer: {
@@ -363,18 +390,29 @@ engine.use({
       return `<p>${this.parser.parseInline(inline)}</p>\n`;
     },
 
-    /* 引用块：第一行是 [!NOTE] 这类标记时整块走提示块，别的一律照旧 */
+    /* 引用块：第一行是 [!NOTE] 这类标记时整块走提示块，[+] 走折叠面板，别的照旧 */
     blockquote(token) {
       const tokens = token.tokens ?? [];
       const callout = calloutOf(tokens);
-      if (!callout) return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`;
+      if (callout) {
+        const { label, icon } = CALLOUTS[callout.type];
+        const body = this.parser.parse(callout.tokens).trimEnd();
+        // 只有标记、没有正文的块也照渲染：标题行下面是空的
+        return `<div class="callout callout--${callout.type}">\n<p class="callout__title">${calloutIcon(
+          icon,
+        )}${label}</p>\n${body ? `${body}\n` : ""}</div>\n`;
+      }
 
-      const { label, icon } = CALLOUTS[callout.type];
-      const body = this.parser.parse(callout.tokens).trimEnd();
-      // 只有标记、没有正文的块也照渲染：标题行下面是空的
-      return `<div class="callout callout--${callout.type}">\n<p class="callout__title">${calloutIcon(
-        icon,
-      )}${label}</p>\n${body ? `${body}\n` : ""}</div>\n`;
+      const accordion = accordionOf(tokens);
+      if (accordion) {
+        const summary = this.parser.parseInline(Lexer.lexInline(accordion.title, engine.defaults));
+        const body = this.parser.parse(accordion.tokens).trimEnd();
+        return `<details class="accordion">\n<summary class="accordion__title">${summary}</summary>\n${
+          body ? `<div class="accordion__body">\n${body}\n</div>\n` : ""
+        }</details>\n`;
+      }
+
+      return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`;
     },
 
     image(token) {

@@ -1123,6 +1123,100 @@ html[data-theme="dark"] .prose .callout {
   background-color: color-mix(in oklab, var(--callout-tone) 13%, var(--paper));
 }
 
+/* 折叠面板：引用块第一行写成 > [+] 标题 的，由生成器转成 details
+   （见 build-post.mjs 的 accordionOf）。整块当一册折页来排：
+   上下两道细线框出折页，标题行做成目录条目——左栏一颗活字方框装着
+   加减号（开合换字形、换墨色，方框定宽，标题不挪位），标题走衬线
+   （呼应 h2 与引文，和提示块的无衬线一眼分得开），右端一列小字标出
+   开合；正文沿标题列缩进，与标题之间的那道细线就是折线。
+   开合只换符号与线，版面不动 */
+.prose .accordion {
+  margin-top: 2.2em;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.prose .accordion__title {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.9rem;
+  padding-block: 1.15em;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--ink);
+  list-style: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.prose .accordion__title::-webkit-details-marker {
+  display: none;
+}
+
+.prose .accordion__title::before {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-weight: 400;
+  color: var(--accent);
+  transition: border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+/* 展开时方框上墨：字身填朱红，减号反白 */
+.prose .accordion[open] .accordion__title::before {
+  content: "−";
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--paper);
+}
+
+/* 右端的小字：合着是「展开」，开了是「收起」，与目录、上下篇的小字同一副面孔 */
+.prose .accordion__title::after {
+  content: "展开";
+  justify-self: end;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.prose .accordion[open] .accordion__title::after {
+  content: "收起";
+}
+
+.prose .accordion__title:hover {
+  color: var(--accent);
+}
+
+.prose .accordion__title:hover::before {
+  border-color: var(--accent);
+}
+
+.prose .accordion__title:hover::after {
+  color: var(--accent);
+}
+
+/* 正文：沿标题列缩进，顶上那道细线是折线 */
+.prose .accordion__body {
+  padding: 1.1em 0 1.3em 2.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.prose .accordion__body > * + * {
+  margin-top: 1em;
+}
+
 .prose ul,
 .prose ol {
   display: grid;
