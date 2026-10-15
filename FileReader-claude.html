@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java.io.FileReader 工作原理动画</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#111c33; --panel2:#16233f; --line:#26365a;
+  --text:#e2e8f0; --muted:#94a3b8;
+  --byte:#f59e0b; --char:#22d3ee; --int:#a78bfa; --ok:#34d399; --bad:#f87171; --hl:#facc15;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:radial-gradient(circle at 20% 0%,#1e293b,var(--bg) 60%);color:var(--text);min-height:100vh;padding:24px}
+.wrap{max-width:1260px;margin:0 auto}
+.mono,code{font-family:"JetBrains Mono",Consolas,Menlo,monospace}
+code{background:#0b1326;padding:1px 5px;border-radius:4px;color:#93c5fd;font-size:.92em}
+header h1{font-size:26px}
+header p{color:var(--muted);margin-top:6px;font-size:14px}
+.legend-row{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.grid{display:grid;grid-template-columns:440px 1fr;gap:20px;margin-top:20px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h2{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.05em;margin-bottom:10px}
+.code{font-size:13px;line-height:1.95;background:#0b1326;border-radius:10px;padding:10px 0;overflow-x:auto}
+.ln{display:block;padding:0 12px 0 8px;border-left:3px solid transparent;white-space:pre;transition:background .3s,border-color .3s}
+.ln .no{display:inline-block;width:24px;color:#475569;user-select:none}
+.ln.active{background:rgba(250,204,21,.13);border-left-color:var(--hl)}
+.kw{color:#c084fc}.ty{color:#60a5fa}.st{color:#86efac}.cm{color:#64748b;font-style:italic}.nu{color:#fda4af}
+.note{margin-top:14px;font-size:14px;line-height:1.8;min-height:170px;background:var(--panel2);border-radius:10px;padding:12px 14px}
+.note b{color:var(--hl)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}
+button{background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;transition:background .2s}
+button:hover:not(:disabled){background:#2547b5}
+button:disabled{opacity:.4;cursor:not-allowed}
+#btn-play{background:#15803d}
+#btn-play:hover{background:#16a34a}
+.speed{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-top:10px}
+.speed input{flex:1}
+.progress{height:6px;background:#0b1326;border-radius:3px;margin-top:12px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--char),var(--int));transition:width .4s}
+.stepinfo{font-size:12px;color:var(--muted);margin-top:6px}
+.keys{font-size:11px;color:#475569;margin-top:4px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;transition:box-shadow .3s,border-color .3s}
+.card .title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.card .sub{font-size:12px;color:var(--muted);margin-left:auto;font-weight:400}
+.card .body{margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.arrow{text-align:center;color:#64748b;font-size:12px;height:28px;line-height:28px}
+.reader{border:2px dashed #334155;border-radius:18px;padding:22px 12px 12px;position:relative;transition:opacity .4s,box-shadow .3s,border-color .3s}
+.reader .legend{position:absolute;top:-12px;left:16px;background:var(--panel);border:1px solid #334155;border-radius:999px;padding:2px 10px;font-size:12px;color:var(--hl)}
+.reader.closed{opacity:.5}
+.glow{box-shadow:0 0 0 2px var(--hl),0 0 26px rgba(250,204,21,.35)!important;border-color:var(--hl)!important}
+
+.cells{display:flex;gap:4px}
+.group{display:flex;flex-direction:column;align-items:center;gap:4px}
+.group .lbl{font-size:12px;color:var(--muted)}
+.cell{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:Consolas,Menlo,monospace;font-size:14px;font-weight:700;border:1px dashed #334155;color:#475569;transition:all .3s}
+.cell.byte{background:rgba(245,158,11,.15);border:1px solid var(--byte);color:var(--byte)}
+.cell.used{opacity:.22}
+.cell.read{box-shadow:inset 0 0 0 2px rgba(245,158,11,.35)}
+.cell.eofcell{color:var(--bad);border:1px dashed var(--bad);font-size:11px}
+.more{color:var(--muted);font-size:12px;margin-left:4px}
+.badge{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid;display:inline-block}
+.badge.off{color:var(--muted);border-color:#334155}
+.badge.on{color:var(--ok);border-color:var(--ok);background:rgba(52,211,153,.1)}
+.badge.closed{color:var(--bad);border-color:var(--bad);background:rgba(248,113,113,.1)}
+.stat{font-size:13px;color:var(--muted)}
+.stat b{color:var(--text);font-size:15px}
+.pipe{flex:1;min-width:140px;height:14px;border-radius:7px;background:repeating-linear-gradient(90deg,#1e293b 0 12px,#2b3b5c 12px 24px)}
+
+.dec{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dec-col{display:flex;flex-direction:column;gap:6px;align-items:center}
+.cap{font-size:11px;color:var(--muted)}
+#dec-bytes{display:flex;gap:4px;min-width:60px;min-height:48px;border:1px dashed #334155;border-radius:8px;padding:2px;align-items:center;justify-content:center}
+.dec-arrow{color:#475569;font-size:18px}
+.bits{font-size:12px;line-height:1.6;min-width:230px;font-family:Consolas,Menlo,monospace}
+.pfx{color:var(--bad)}.pl{color:#86efac}
+.rule{color:var(--muted);font-size:11px}
+.muted{color:#475569}
+.cp{font-size:16px;font-family:Consolas,Menlo,monospace;min-width:70px;text-align:center}
+.bigchar{width:62px;height:62px;border-radius:12px;border:1px solid var(--char);background:rgba(34,211,238,.1);color:var(--char);font-size:32px;display:flex;align-items:center;justify-content:center}
+
+.prog{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;width:100%}
+.var{display:flex;flex-direction:column;gap:6px}
+.varbox{min-width:120px;height:56px;border-radius:10px;border:1px solid var(--int);background:rgba(167,139,250,.12);color:var(--int);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 12px;transition:all .3s}
+.varbox.eof{border-color:var(--bad);color:var(--bad);background:rgba(248,113,113,.12)}
+.console{flex:1;min-width:220px;display:flex;flex-direction:column;gap:6px}
+.term{background:#020617;border:1px solid #1e293b;border-radius:10px;height:56px;display:flex;align-items:center;padding:0 14px;font-size:22px}
+.term::before{content:"$";color:var(--ok);margin-right:10px;font-size:14px}
+.cursor{animation:blink 1s steps(1) infinite;color:var(--ok)}
+@keyframes blink{50%{opacity:0}}
+
+.token{position:fixed;left:0;top:0;z-index:999;pointer-events:none;padding:6px 10px;border-radius:8px;font-family:Consolas,Menlo,monospace;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+.token.byte{background:var(--byte);color:#1a1200}
+.token.char{background:var(--char);color:#022}
+.token.int{background:var(--int);color:#160d33}
+.token.eof{background:var(--bad);color:#200}
+
+.tips{margin-top:20px}
+.tips ul{padding-left:20px;font-size:14px;line-height:1.9;color:#cbd5e1}
+.tips li b{color:var(--hl)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>java.io.FileReader 工作原理动画</h1>
+    <p>FileReader 是<b>字符流</b>：从磁盘读的是<b>字节</b>，交给程序的是<b>字符</b>。下面一步步看它是怎样做到的。</p>
+    <div class="legend-row">
+      <span class="chip"><i style="background:var(--byte)"></i>字节 byte</span>
+      <span class="chip"><i style="background:var(--char)"></i>字符 char</span>
+      <span class="chip"><i style="background:var(--int)"></i>read() 返回的 int</span>
+      <span class="chip"><i style="background:var(--bad)"></i>EOF / -1</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左侧：代码 + 说明 + 控制 -->
+    <div class="panel">
+      <h2>JAVA 代码</h2>
+      <div class="code mono">
+        <span class="ln"><span class="no">1</span><span class="kw">try</span> (<span class="ty">FileReader</span> reader =</span>
+        <span class="ln"><span class="no">2</span>        <span class="kw">new</span> <span class="ty">FileReader</span>(<span class="st">"hello.txt"</span>, UTF_8)) {</span>
+        <span class="ln"><span class="no">3</span>    <span class="kw">int</span> c;</span>
+        <span class="ln"><span class="no">4</span>    <span class="kw">while</span> ((c = reader.read()) != <span class="nu">-1</span>) {</span>
+        <span class="ln"><span class="no">5</span>        <span class="ty">System</span>.out.print((<span class="kw">char</span>) c);</span>
+        <span class="ln"><span class="no">6</span>    }</span>
+        <span class="ln"><span class="no">7</span>}  <span class="cm">// 自动调用 reader.close()</span></span>
+      </div>
+
+      <div class="note" id="note"></div>
+
+      <div class="controls">
+        <button id="btn-reset">⏮ 重置</button>
+        <button id="btn-prev">◀ 上一步</button>
+        <button id="btn-play">▶ 播放</button>
+        <button id="btn-next">下一步 ▶</button>
+      </div>
+      <div class="speed">速度 <input type="range" id="speed" min="0.5" max="2.5" step="0.25" value="1"><span id="speed-val">1x</span></div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="stepinfo" id="stepinfo"></div>
+      <div class="keys">快捷键：空格 播放/暂停 · ← → 单步 · R 重置</div>
+    </div>
+
+    <!-- 右侧：舞台 -->
+    <div class="stage">
+      <div class="card" id="card-disk">
+        <div class="title">💾 磁盘文件 hello.txt <span class="sub">内容 "Hi你好" · UTF-8 编码 · 8 字节</span></div>
+        <div class="body" id="disk"></div>
+      </div>
+
+      <div class="arrow">▼ 系统调用 read(fd, buffer, 8192)</div>
+
+      <div class="reader" id="reader-box">
+        <div class="legend">FileReader（继承自 InputStreamReader）</div>
+
+        <div class="card" id="card-fis">
+          <div class="title">🔌 FileInputStream <span class="sub">底层字节流 · 持有操作系统文件句柄</span></div>
+          <div class="body">
+            <span class="badge off" id="fis-state">未打开</span>
+            <span class="stat">系统调用次数：<b id="syscalls">0</b></span>
+            <div class="pipe" id="fis-pipe"></div>
+          </div>
+        </div>
+
+        <div class="arrow">▼ 字节批量存入缓冲区</div>
+
+        <div class="card" id="card-buf">
+          <div class="title">📦 StreamDecoder 字节缓冲区 <span class="sub" id="buf-info"></span></div>
+          <div class="body" id="buf"></div>
+        </div>
+
+        <div class="arrow">▼ CharsetDecoder 按 UTF-8 规则解码</div>
+
+        <div class="card" id="card-dec">
+          <div class="title">🔤 CharsetDecoder (UTF-8) <span class="sub">字节 → Unicode 字符</span></div>
+          <div class="body">
+            <div class="dec">
+              <div class="dec-col"><div class="cap">输入字节</div><div id="dec-bytes"></div></div>
+              <div class="dec-arrow">→</div>
+              <div class="dec-col"><div class="cap">UTF-8 位模式（红=前缀，绿=有效位）</div><div id="dec-bits" class="bits"></div></div>
+              <div class="dec-arrow">→</div>
+              <div class="dec-col"><div class="cap">码点</div><div id="dec-cp" class="cp"></div></div>
+              <div class="dec-arrow">→</div>
+              <div class="dec-col"><div class="cap">字符</div><div id="dec-char" class="bigchar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow">▼ read() 返回 int</div>
+
+      <div class="card" id="card-prog">
+        <div class="title">🧑‍💻 你的程序</div>
+        <div class="body">
+          <div class="prog">
+            <div class="var"><div class="cap">int c</div><div id="var-c" class="varbox">?</div><div id="var-lbl" class="cap"></div></div>
+            <div class="console"><div class="cap">控制台输出</div><div class="term"><span id="console-out"></span><span id="cursor" class="cursor">▌</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel tips">
+    <h2>知识要点</h2>
+    <ul>
+      <li><b>FileReader = FileInputStream + 字符解码</b>：它是 <code>InputStreamReader</code> 的便捷子类，专门用来读取文本文件。</li>
+      <li><b>一定要指定编码</b>：Java 11+ 可以用 <code>new FileReader(file, StandardCharsets.UTF_8)</code>。JDK 18 起默认字符集是 UTF-8（JEP 400），更早的版本使用平台默认编码，容易出现乱码。</li>
+      <li><b>read() 返回 int</b>：0–65535 表示一个 char，<code>-1</code> 表示文件结束（EOF）。</li>
+      <li><b>一个字符 ≠ 一个字节</b>：在 UTF-8 中，英文占 1 字节，常用汉字占 3 字节；emoji 等 BMP 以外的字符需要两个 char（代理对），也就是两次 read()。</li>
+      <li><b>性能</b>：逐字符 read() 每次都有方法调用开销，实际开发中通常再包一层 <code>BufferedReader</code>（支持 <code>readLine()</code>），或者直接用 <code>Files.newBufferedReader</code> / <code>Files.readString</code>。</li>
+      <li><b>及时关闭</b>：用 try-with-resources 自动 close()，释放文件句柄，避免资源泄漏。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const DATA = [
+  {bytes:[0x48], ch:'H', cp:0x48},
+  {bytes:[0x69], ch:'i', cp:0x69},
+  {bytes:[0xE4,0xBD,0xA0], ch:'你', cp:0x4F60},
+  {bytes:[0xE5,0xA5,0xBD], ch:'好', cp:0x597D},
+];
+const BYTES = DATA.flatMap(d => d.bytes);
+const hex = b => b.toString(16).toUpperCase().padStart(2,'0');
+const uplus = cp => 'U+' + cp.toString(16).toUpperCase().padStart(4,'0');
+const FIS_TXT = {off:'未打开', on:'已打开 · 持有文件句柄', closed:'已关闭 · 句柄已释放'};
+
+let speed = 1;
+const D = ms => ms / speed;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- 构建静态元素 ---------- */
+(function build(){
+  const disk = $('#disk'); let idx = 0;
+  DATA.forEach(d => {
+    const g = document.createElement('div'); g.className = 'group';
+    const cells = document.createElement('div'); cells.className = 'cells';
+    d.bytes.forEach(b => {
+      const c = document.createElement('div');
+      c.className = 'cell byte'; c.id = 'disk-' + idx++; c.textContent = hex(b);
+      cells.appendChild(c);
+    });
+    const l = document.createElement('div'); l.className = 'lbl'; l.textContent = `'${d.ch}'`;
+    g.append(cells, l); disk.appendChild(g);
+  });
+  const eof = document.createElement('div'); eof.className = 'group';
+  eof.innerHTML = '<div class="cells"><div class="cell eofcell" id="disk-eof">EOF</div></div><div class="lbl">文件末尾</div>';
+  disk.appendChild(eof);
+
+  const buf = $('#buf');
+  BYTES.forEach((b,i) => {
+    const c = document.createElement('div'); c.className = 'cell'; c.id = 'buf-' + i; buf.appendChild(c);
+  });
+  const more = document.createElement('div'); more.className = 'more'; more.textContent = '… 共 8192 个槽位';
+  buf.appendChild(more);
+})();
+
+/* ---------- 动画工具 ---------- */
+function fly(from, to, text, cls, dur = 700){
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const t = document.createElement('div');
+  t.className = 'token ' + cls; t.textContent = text;
+  document.body.appendChild(t);
+  const w = t.offsetWidth, h = t.offsetHeight;
+  const x0 = a.left + a.width/2 - w/2, y0 = a.top + a.height/2 - h/2;
+  const x1 = b.left + b.width/2 - w/2, y1 = b.top + b.height/2 - h/2;
+  const dx = x1 - x0, dy = y1 - y0;
+  const anim = t.animate([
+    {transform:`translate(${x0}px,${y0}px) scale(.6)`, opacity:0},
+    {transform:`translate(${x0 + dx*.08}px,${y0 + dy*.08}px) scale(1.15)`, opacity:1, offset:.15},
+    {transform:`translate(${x1}px,${y1}px) scale(1)`, opacity:1, offset:.88},
+    {transform:`translate(${x1}px,${y1}px) scale(.7)`, opacity:0}
+  ], {duration:D(dur), easing:'ease-in-out', fill:'forwards'});
+  return anim.finished.then(() => t.remove());
+}
+function glow(el, ms){ el.classList.add('glow'); setTimeout(() => el.classList.remove('glow'), D(ms)); }
+function pulse(el){
+  return el.animate([{transform:'scale(1)'},{transform:'scale(1.15)'},{transform:'scale(1)'}],
+                    {duration:D(500), easing:'ease-out'}).finished;
+}
+function setFis(state){ const b = $('#fis-state'); b.className = 'badge ' + state; b.textContent = FIS_TXT[state]; }
+
+/* ---------- 解码器显示 ---------- */
+const RULES = {1:'0xxxxxxx → 单字节（ASCII）', 2:'110xxxxx 10xxxxxx → 2 字节', 3:'1110xxxx 10xxxxxx 10xxxxxx → 3 字节', 4:'11110xxx 10xxxxxx ×3 → 4 字节'};
+function showDecoder(k){
+  const d = DATA[k], n = d.bytes.length;
+  $('#dec-bytes').innerHTML = d.bytes.map(b => `<div class="cell byte">${hex(b)}</div>`).join('');
+  const bits = d.bytes.map((b,i) => {
+    const s = b.toString(2).padStart(8,'0');
+    const p = n === 1 ? 1 : (i === 0 ? n + 1 : 2);
+    return `<span class="pfx">${s.slice(0,p)}</span><span class="pl">${s.slice(p)}</span>`;
+  }).join(' ');
+  const payload = d.cp.toString(2).padStart([0,7,11,16,21][n], '0');
+  $('#dec-bits').innerHTML = `<div>${bits}</div><div>→ <span class="pl">${payload}</span></div><div class="rule">${RULES[n]}</div>`;
+  $('#dec-cp').textContent = uplus(d.cp);
+  $('#dec-char').textContent = d.ch;
+}
+function clearDecoder(){
+  $('#dec-bytes').innerHTML = '';
+  $('#dec-bits').innerHTML = '<span class="muted">等待字节…</span>';
+  $('#dec-cp').textContent = '—';
+  $('#dec-char').textContent = '';
+}
+
+/* ---------- 步骤定义 ---------- */
+const steps = [];
+let S = {lines:[], fis:'off', sys:0, buf:0, used:0, dec:null, c:null, out:''};
+function add(title, patch, note, anim){ S = {...S, ...patch}; steps.push({title, s:S, note, anim}); }
+
+add('准备', {},
+  `<b>准备阶段</b>：磁盘上的 <code>hello.txt</code> 内容是 "Hi你好"，但文件里实际存的是 <b>8 个字节</b>（UTF-8 编码：英文 1 字节，中文 3 字节）。<br>FileReader 是<b>字符流</b>，它读取字节，再解码成字符交给程序。点击 <b>▶ 播放</b> 或 <b>下一步</b> 开始。`);
+
+add('创建 FileReader', {lines:[0,1], fis:'on'},
+  `<b>new FileReader(...)</b>：FileReader 继承自 <code>InputStreamReader</code>，构造时会：<br>① 创建 <code>FileInputStream</code>，向操作系统申请<b>文件句柄</b>；<br>② 创建 <code>StreamDecoder</code> 和 UTF-8 的 <code>CharsetDecoder</code>。<br>此时<b>还没有读取任何数据</b>。`,
+  async () => {
+    glow($('#reader-box'), 1500);
+    await sleep(D(300));
+    setFis('on'); await pulse($('#fis-state'));
+    glow($('#card-dec'), 900);
+    await sleep(D(700));
+  });
+
+add('填充缓冲区', {lines:[3], sys:1, buf:8},
+  `<b>第一次调用 read()</b>：缓冲区是空的，于是 StreamDecoder 调用 <code>FileInputStream.read(byte[])</code>，通过<b>一次系统调用</b>把一批字节（最多 8192 个）读进缓冲区。<br>批量读取能大幅减少昂贵的系统调用次数。`,
+  async () => {
+    glow($('#card-fis'), 2000);
+    $('#syscalls').textContent = 1; pulse($('#syscalls'));
+    await Promise.all(BYTES.map((b,i) => (async () => {
+      await sleep(D(i * 120));
+      await fly($('#disk-' + i), $('#fis-pipe'), hex(b), 'byte', 550);
+      await fly($('#fis-pipe'), $('#buf-' + i), hex(b), 'byte', 550);
+      const c = $('#buf-' + i); c.className = 'cell byte'; c.textContent = hex(b);
+    })()));
+  });
+
+const decNotes = [
+  `缓冲区里已有数据，<b>不需要再访问磁盘</b>。解码器取出字节 <code>0x48</code>：最高位是 0，说明是单字节 ASCII 字符 <b>'H'</b>。<br><code>read()</code> 返回它的码点 <b>72</b>。注意返回类型是 <code>int</code>，不是 <code>char</code>。`,
+  `取出 <code>0x69</code>，最高位是 0，得到单字节字符 <b>'i'</b>，read() 返回 <b>105</b>。`,
+  `取出 <code>E4 BD A0</code>：首字节以 <code>1110</code> 开头，表示这是一个 <b>3 字节序列</b>。解码器去掉前缀、拼接有效位，得到 <b>U+4F60 = '你'</b>，read() 返回 <b>20320</b>。<br>注意：<b>一次 read() 消耗了 3 个字节，却只返回 1 个字符</b>。`,
+  `同理，<code>E5 A5 BD</code> 解码为 <b>U+597D = '好'</b>，read() 返回 <b>22909</b>。缓冲区中的 8 个字节已全部用完。`
+];
+let used = 0, out = '';
+DATA.forEach((d,k) => {
+  const start = used; used += d.bytes.length; out += d.ch;
+  add(`read() → '${d.ch}'`, {lines:[3], used, dec:k, c:d.cp}, decNotes[k],
+    async () => {
+      clearDecoder();
+      glow($('#card-buf'), 900);
+      await Promise.all(d.bytes.map((b,j) =>
+        sleep(D(j * 130))
+          .then(() => fly($('#buf-' + (start + j)), $('#dec-bytes'), hex(b), 'byte', 700))
+          .then(() => $('#buf-' + (start + j)).classList.add('used'))));
+      showDecoder(k);
+      glow($('#card-dec'), 1300);
+      await pulse($('#dec-char'));
+      await sleep(D(500));
+      await fly($('#dec-char'), $('#var-c'), String(d.cp), 'int', 800);
+    });
+  add(`输出 '${d.ch}'`, {lines:[4], out},
+    `${k === 0 ? '<code>c</code> 不等于 -1，进入循环体。' : ''}<code>(char) c</code> 把 int <b>${d.cp}</b> 转回字符 <b>'${d.ch}'</b>，由 <code>System.out.print</code> 输出。<br>然后回到 while 条件，进行下一次 read()。`,
+    async () => { await fly($('#var-c'), $('#cursor'), `'${d.ch}'`, 'char', 800); });
+});
+
+add('EOF', {lines:[3], sys:2, dec:null, c:-1},
+  `<b>再次 read()</b>：缓冲区已空，StreamDecoder 再次调用底层 read，操作系统报告<b>已经到达文件末尾</b>。<br>read() 返回 <b>-1</b>，条件 <code>c != -1</code> 为 false，退出循环。<br>（这就是 read() 返回 <code>int</code> 的原因：char 的 0–65535 全是合法字符，没有空位留给 -1。）`,
+  async () => {
+    clearDecoder();
+    glow($('#card-buf'), 800);
+    await sleep(D(400));
+    $('#syscalls').textContent = 2; glow($('#card-fis'), 1500); pulse($('#syscalls'));
+    await fly($('#disk-eof'), $('#fis-pipe'), 'EOF', 'eof', 700);
+    await fly($('#fis-pipe'), $('#var-c'), '-1', 'eof', 900);
+  });
+
+add('关闭', {lines:[6], fis:'closed'},
+  `<b>try-with-resources 自动调用 close()</b>：FileReader.close() → StreamDecoder.close() → FileInputStream.close()，<b>释放文件句柄</b>。<br>✅ 完成！共 <b>2 次系统调用</b>，读取 <b>8 个字节</b>，得到 <b>4 个字符</b>，输出 "Hi你好"。`,
+  async () => {
+    glow($('#reader-box'), 1300);
+    await sleep(D(400));
+    setFis('closed'); await pulse($('#fis-state'));
+    await sleep(D(400));
+  });
+
+/* ---------- 渲染 ---------- */
+let cur = 0, busy = false, playing = false;
+function render(){
+  const st = steps[cur].s;
+  document.querySelectorAll('.ln').forEach((el,i) => el.classList.toggle('active', st.lines.includes(i)));
+  setFis(st.fis);
+  $('#reader-box').classList.toggle('closed', st.fis === 'closed');
+  $('#syscalls').textContent = st.sys;
+  BYTES.forEach((v,i) => {
+    $('#disk-' + i).classList.toggle('read', st.buf > 0);
+    const c = $('#buf-' + i);
+    if (i < st.buf){ c.className = 'cell byte' + (i < st.used ? ' used' : ''); c.textContent = hex(v); }
+    else { c.className = 'cell'; c.textContent = ''; }
+  });
+  $('#buf-info').textContent = `已填充 ${st.buf} 字节 · 已解码 ${st.used} 字节`;
+  st.dec === null ? clearDecoder() : showDecoder(st.dec);
+  const vc = $('#var-c'), vl = $('#var-lbl');
+  vc.classList.toggle('eof', st.c === -1);
+  if (st.c === null){ vc.textContent = '?'; vl.textContent = '尚未赋值'; }
+  else if (st.c === -1){ vc.textContent = '-1'; vl.textContent = 'EOF：文件结束'; }
+  else { vc.textContent = st.c; vl.textContent = `'${String.fromCodePoint(st.c)}' · ${uplus(st.c)}`; }
+  $('#console-out').textContent = st.out;
+  $('#note').innerHTML = steps[cur].note;
+  $('#bar').style.width = (cur / (steps.length - 1) * 100) + '%';
+  $('#stepinfo').textContent = `步骤 ${cur} / ${steps.length - 1} · ${steps[cur].title}`;
+  updateButtons();
+}
+function updateButtons(){
+  const last = cur >= steps.length - 1;
+  $('#btn-prev').disabled = busy || cur === 0;
+  $('#btn-reset').disabled = busy;
+  $('#btn-next').disabled = busy || last;
+  $('#btn-play').textContent = playing ? '⏸ 暂停' : (last ? '↻ 重播' : '▶ 播放');
+}
+
+/* ---------- 控制 ---------- */
+async function next(){
+  if (busy || cur >= steps.length - 1) return;
+  busy = true; updateButtons();
+  const st = steps[cur + 1];
+  try { if (st.anim) await st.anim(); } catch(e) { console.error(e); }
+  cur++; busy = false; render();
+}
+function prev(){ if (busy || cur === 0) return; playing = false; cur--; render(); }
+function reset(){ if (busy) return; playing = false; cur = 0; render(); }
+async function play(){
+  if (playing){ playing = false; updateButtons(); return; }
+  if (busy) return;
+  if (cur >= steps.length - 1){ cur = 0; render(); await sleep(300); }
+  playing = true; updateButtons();
+  while (playing && cur < steps.length - 1){
+    await next();
+    if (!playing) break;
+    await sleep(D(1200));
+  }
+  playing = false; updateButtons();
+}
+
+$('#btn-next').onclick = () => { playing = false; next(); };
+$('#btn-prev').onclick = prev;
+$('#btn-reset').onclick = reset;
+$('#btn-play').onclick = play;
+$('#speed').oninput = e => { speed = parseFloat(e.target.value); $('#speed-val').textContent = speed + 'x'; };
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space'){ e.preventDefault(); play(); }
+  else if (e.key === 'ArrowRight'){ playing = false; next(); }
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key.toLowerCase() === 'r') reset();
+});
+
+render();
+</script>
+</body>
+</html>
