@@ -34,6 +34,13 @@
   --accent: #b4372a;
   --accent-wash: #f0e3e0;
 
+  /* 代码高亮：生成时按这套令牌上色（规则在「正文」一段） */
+  --code-comment: #7d786f;
+  --code-keyword: #b4372a;
+  --code-string: #3c6a4d;
+  --code-number: #8a5a2f;
+  --code-name: #2f5a86;
+
   /* 字体
      正文交给系统黑体：苹方与雅黑都是为屏幕正文调校过的字体，
      省下的一整族中文 webfont 请求没有必要花在它身上。
@@ -72,6 +79,12 @@ html[data-theme="dark"] {
 
   --accent: #e2604e;
   --accent-wash: #33231f;
+
+  --code-comment: #86817a;
+  --code-keyword: #e2604e;
+  --code-string: #7cb894;
+  --code-number: #d9a066;
+  --code-name: #8ab0dd;
 }
 
 /* --------------------------------------------------------------------------
@@ -1145,6 +1158,46 @@ html[data-theme="dark"] .prose code:not(pre code) {
 
 .prose .code__copy[data-copied] .code__copy-done {
   display: block;
+}
+
+/* 代码高亮：生成时已由 highlight.js 把 span 打好（见 scripts/build-post.mjs），
+   这里只管配色。颜色仍从纸墨里取——注释是灰、关键字是朱红、字符串是松绿、
+   数字与注解是赭、类型与函数名是藏蓝，不多添一套彩虹 */
+.prose .hljs-comment,
+.prose .hljs-quote {
+  color: var(--code-comment);
+}
+
+.prose .hljs-keyword,
+.prose .hljs-doctag,
+.prose .hljs-selector-tag,
+.prose .hljs-literal,
+.prose .hljs-name {
+  color: var(--code-keyword);
+}
+
+.prose .hljs-string,
+.prose .hljs-regexp,
+.prose .hljs-addition {
+  color: var(--code-string);
+}
+
+.prose .hljs-number,
+.prose .hljs-symbol,
+.prose .hljs-meta,
+.prose .hljs-link {
+  color: var(--code-number);
+}
+
+.prose .hljs-title,
+.prose .hljs-type,
+.prose .hljs-built_in,
+.prose .hljs-attr,
+.prose .hljs-attribute,
+.prose .hljs-selector-class,
+.prose .hljs-selector-id,
+.prose .hljs-selector-pseudo {
+  color: var(--code-name);
 }
 
 .prose figure {

@@ -17,6 +17,13 @@ export function esc(value) {
     .replace(/"/g, "&quot;");
 }
 
+/* esc 的反面。给高亮器喂原文用——它自己会重新转义 */
+const ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
+
+export function unesc(value) {
+  return String(value ?? "").replace(/&(?:amp|lt|gt|quot|#39);/g, (entity) => ENTITIES[entity]);
+}
+
 /* --------------------------------------------------------------------------
    读取本地图片的像素尺寸
    写入 img 的 width/height，避免图片加载时页面跳动。

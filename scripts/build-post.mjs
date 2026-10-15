@@ -24,14 +24,36 @@
      - 图片单独成段时自动包成 figure，alt 之外的说明写在标题里：![](..."图注")
      - 链接、图片路径都按 posts/ 目录写（例如 assets/a.jpg、../index.html）
      - 需要精确控制某个片段时，可以直接在 md 里写 HTML，原样输出
+     - 标了语言的代码块在生成时用 highlight.js 上色（认得哪几种见 LANGUAGES）；语言
+       不在页面上显示，未标语言的块保持纯文本
    ========================================================================== */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname, basename, resolve, isAbsolute, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked, Parser, TextRenderer } from "marked";
+import hljs from "highlight.js/lib/core";
+import bash from "highlight.js/lib/languages/bash";
+import c from "highlight.js/lib/languages/c";
+import cpp from "highlight.js/lib/languages/cpp";
+import css from "highlight.js/lib/languages/css";
+import diff from "highlight.js/lib/languages/diff";
+import go from "highlight.js/lib/languages/go";
+import ini from "highlight.js/lib/languages/ini";
+import java from "highlight.js/lib/languages/java";
+import javascript from "highlight.js/lib/languages/javascript";
+import json from "highlight.js/lib/languages/json";
+import markdown from "highlight.js/lib/languages/markdown";
+import plaintext from "highlight.js/lib/languages/plaintext";
+import properties from "highlight.js/lib/languages/properties";
+import python from "highlight.js/lib/languages/python";
+import rust from "highlight.js/lib/languages/rust";
+import sql from "highlight.js/lib/languages/sql";
+import typescript from "highlight.js/lib/languages/typescript";
+import xml from "highlight.js/lib/languages/xml";
+import yaml from "highlight.js/lib/languages/yaml";
 import { renderPage } from "./template.mjs";
-import { esc, readImageSize, formatDate, estimateMinutes, countStats, plainText } from "./util.mjs";
+import { esc, unesc, readImageSize, formatDate, estimateMinutes, countStats, plainText } from "./util.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const POSTS = join(ROOT, "posts");
@@ -208,6 +230,58 @@ function headingId(text) {
 /* 本篇目录，渲染时顺手收集 h2 / h3 */
 let toc = [];
 
+/* --------------------------------------------------------------------------
+   代码高亮
+   标了语言的代码块在生成时就由 highlight.js 上色（颜色见 styles.css 的
+   --code-* 令牌）。这里只挑语言：认识的写在下面这张表里，要加一门就添一行；
+   表外的按纯文本输出并提示一句。highlight.js 自带的别名同样可用：
+   js、html、yml、txt…
+   -------------------------------------------------------------------------- */
+
+const LANGUAGES = {
+  bash,
+  c,
+  cpp,
+  css,
+  diff,
+  go,
+  ini,
+  java,
+  javascript,
+  json,
+  markdown,
+  plaintext,
+  properties,
+  python,
+  rust,
+  sql,
+  typescript,
+  xml,
+  yaml,
+};
+
+for (const [name, language] of Object.entries(LANGUAGES)) hljs.registerLanguage(name, language);
+
+/* 表外还有几种常见写法，扶到表里的语言上 */
+const ALIASES = {
+  shell: "bash",
+  zsh: "bash",
+};
+
+/* 高亮一段代码；语言没注册就返回 null，交给调用方按纯文本输出 */
+function paint(source, lang) {
+  if (!lang) return null;
+
+  const written = lang.toLowerCase();
+  const name = ALIASES[written] || written;
+  if (!hljs.getLanguage(name)) {
+    note(`代码块的语言不在注册表里，按纯文本输出：${lang}`);
+    return null;
+  }
+
+  return hljs.highlight(source, { language: name, ignoreIllegals: true }).value;
+}
+
 /* 复制按钮的两个图标：默认是「复制」，点过之后换成对勾 */
 const COPY_ICONS = `<svg class="code__copy-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="code__copy-done" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
 
@@ -236,16 +310,19 @@ engine.use({
       return imgTag(token);
     },
 
-    /* 代码块：右上角一个复制按钮。语言不再显示，language-xx 类留着，将来接高亮时现成 */
+    /* 代码块：生成时上好高亮，右上角再给一个复制按钮。语言不在页面上显示 */
     code(token) {
       const lang = (token.lang || "").trim().split(/\s+/)[0] || "";
       const text = `${String(token.text ?? "").replace(/\n+$/, "")}\n`;
-      const pre = `<pre><code${lang ? ` class="language-${esc(lang)}"` : ""}>${
-        token.escaped ? text : esc(text)
-      }</code></pre>`;
+      // marked 给的一般是原文；万一这份 token 已经转义过，先还原，高亮器会重新转义
+      const source = token.escaped ? unesc(text) : text;
+      const painted = paint(source, lang);
+      // language-xx 类照旧留着，未上色的块也有
+      const classes = [painted && "hljs", lang && `language-${esc(lang)}`].filter(Boolean).join(" ");
+      const code = `<code${classes ? ` class="${classes}"` : ""}>${painted ?? esc(source)}</code>`;
       const button = `<button class="code__copy" type="button" data-copy-code aria-label="复制代码">${COPY_ICONS}</button>`;
 
-      return `<div class="code">\n${button}\n${pre}\n</div>\n`;
+      return `<div class="code">\n${button}\n<pre>${code}</pre>\n</div>\n`;
     },
 
     link(token) {
