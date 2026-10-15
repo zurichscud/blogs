@@ -967,30 +967,40 @@ html[data-theme="dark"] .theme-toggle__dial {
   color: var(--ink);
 }
 
-/* 标题：h2 和 h3 同款（无衬线加粗），只靠前面的井号数量区分层级 */
-.prose h2,
-.prose h3 {
-  font-family: var(--font-body);
-  font-size: clamp(1.13rem, 2.1vw, 1.43rem);
-  font-weight: 700;
-  line-height: 1.4;
-  margin-top: 2.6em;
-  margin-bottom: -0.3em;
+/* 标题：层级靠字族、字号与线，不用井号。
+   h2 走衬线大字加一条版框线，像一节的起头；
+   h3 走正文无衬线加粗，行首一粒朱红字粒（呼应金属活字），比 h2 低一头 */
+.prose h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.4vw, 1.68rem);
+  font-weight: 600;
+  line-height: 1.42;
+  letter-spacing: 0.01em;
+  margin-top: 3em;
+  margin-bottom: -0.25em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--rule);
   color: var(--ink);
 }
 
-.prose h2::before,
-.prose h3::before {
-  color: var(--accent);
-  margin-right: 0.22em;
+.prose h3 {
+  font-family: var(--font-body);
+  font-size: clamp(1.04rem, 1.6vw, 1.15rem);
+  font-weight: 600;
+  line-height: 1.55;
+  margin-top: 2.5em;
+  margin-bottom: -0.35em;
+  color: var(--ink);
 }
 
-.prose h2::before {
-  content: "##";
-}
-
 .prose h3::before {
-  content: "###";
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-right: 0.6em;
+  background-color: var(--accent);
+  vertical-align: 0.08em;
 }
 
 .prose h4 {

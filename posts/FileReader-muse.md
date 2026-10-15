@@ -1,14 +1,12 @@
 # java.io.FileReader 技术文档
 
-> **Java I/O · 字符流** · 面向**文本文件**读取的便捷包装类，核心是理解字符集解码与缓冲机制。
+以字符流方式读取文本文件
+
+## 1 概述
 
 `java.io.FileReader` 是用于读取字符文件的便利类。其底层封装了 `FileInputStream`，通过指定的或平台默认的字符集解码器将原始字节流解码为 Unicode 字符（`char`）。适合读取 `.txt`、`.csv`、`.java`、`.log`、`.properties` 等文本文件；若要处理图片、音视频、压缩包等二进制文件，必须使用字节流（如 `FileInputStream`）。
 
----
-
-## 01 核心定位与继承体系
-
-### 继承关系
+## 2 继承关系
 
 ```text
 java.lang.Object
@@ -17,34 +15,25 @@ java.lang.Object
           └─ java.io.FileReader (专用于文件的便捷字符流)
 ```
 
-### 设计本质
+实现的接口：Closeable、AutoCloseable、Readable。所以它可以用在 try-with-resources 中。
 
 **`FileReader = FileInputStream + CharsetDecoder`**
 
 `FileReader` 自身几乎没有新增特有业务逻辑，核心能力全部继承自 `InputStreamReader` 与 `Reader`。它的本质是把「创建文件字节输入流（`FileInputStream`）」和「绑定字符解码器（`CharsetDecoder`）」封装到构造方法中，提供开箱即用的文件字符读取体验。
 
-> ℹ️ **适用场景判断**
-> - **适用：** 读取简单、轻量级的本地纯文本文件。
-> - **不适用（需选用其他类）：**
->   - 需要在 JDK 8 及以前版本显式指定编码（请用 `InputStreamReader`）。
->   - 需要按行读取或提高大文件吞吐量（请搭配 `BufferedReader` 或改用 NIO.2）。
->   - 读取超大文件需流式处理（请优先使用 `Files.lines()`）。
-
 ---
 
-## 02 构造方法演进
+## 3 构造方法
 
 **5 个构造重载 · JDK 11 新增 `Charset` 支持是重要里程碑**
 
-| 构造方法签名 | 引入版本 | 说明与注意事项 |
-| :--- | :--- | :--- |
-| `FileReader(String fileName)` | JDK 1.1 | 传入文件路径；使用平台默认字符集；文件不存在抛出 `FileNotFoundException` |
-| `FileReader(File file)` | JDK 1.1 | 传入 `File` 对象；使用平台默认字符集 |
-| `FileReader(FileDescriptor fd)` | JDK 1.1 | 绑定已打开的文件描述符（如 `FileDescriptor.in`），通常在底层系统调用场景使用 |
-| `FileReader(File file, Charset charset)` | **JDK 11+** | 显式指定字符编码（**推荐**），如 `StandardCharsets.UTF_8` |
-| `FileReader(String fileName, Charset charset)` | **JDK 11+** | 传入路径与字符编码（**推荐**） |
-
-### 构造代码示例
+| 构造方法签名                                   | 版本        | 说明                                                                         |
+| :--------------------------------------------- | :---------- | :--------------------------------------------------------------------------- |
+| `FileReader(String fileName)`                  | JDK 1.1     | 传入文件路径；使用平台默认字符集；文件不存在抛出 `FileNotFoundException`     |
+| `FileReader(File file)`                        | JDK 1.1     | 传入 `File` 对象；使用平台默认字符集                                         |
+| `FileReader(FileDescriptor fd)`                | JDK 1.1     | 绑定已打开的文件描述符（如 `FileDescriptor.in`），通常在底层系统调用场景使用 |
+| `FileReader(File file, Charset charset)`       | **JDK 11+** | 显式指定字符编码（**推荐**），如 `StandardCharsets.UTF_8`                    |
+| `FileReader(String fileName, Charset charset)` | **JDK 11+** | 传入路径与字符编码（**推荐**）                                               |
 
 ```java
 // CtorDemo.java
@@ -72,20 +61,20 @@ try (BufferedReader br = Files.newBufferedReader(
 
 ---
 
-## 03 核心 API 详解与底层机制
+## 4 常用方法
 
 `FileReader` 自身未扩展新的公共读取方法，完全继承自 `InputStreamReader` 与 `Reader`。
 
-| 方法签名 | 返回值 | 核心机制与说明 |
-| :--- | :--- | :--- |
-| `int read()` | 单个字符对应的值；`-1` 表示流已到末尾 | 读取一个字符。返回值为 `int`（0 ~ 65535），必须先判断是否为 `-1`，再强转为 `char`。 |
-| `int read(char[] cbuf)` | 实际读取的字符数；`-1` 表示末尾 | 将字符尽量读入目标数组。返回值可能小于数组长度，必须按实际读取数使用。 |
-| `int read(char[] cbuf, int off, int len)` | 实际读取的字符数；`-1` 表示末尾 | 读取最多 `len` 个字符并存储到从 `off` 开始的数组区间。最常用的底层读取方式。 |
-| `int read(CharBuffer target)` | 读入的字符数；`-1` 表示末尾 | 将字符序列读入指定的 NIO `CharBuffer`。 |
-| `boolean ready()` | 流是否就绪（读取不阻塞） | 对常规本地文件流通常返回 `true`；到达文件末尾或流关闭后返回 `false`。**绝不能替代 `-1` 结束判断**。 |
-| `long skip(long n)` | 实际跳过的字符数 | 从流中跳过 `n` 个字符。 |
-| `String getEncoding()` | 编码名称（如 UTF8） | 继承自 `InputStreamReader`，返回当前解码器使用的规范编码名。 |
-| `void close()` | `void` | 关闭流并释放底层系统文件句柄。必须调用，强烈建议使用 try-with-resources。 |
+| 方法签名                                  | 返回值                                | 说明                                                                                                |
+| :---------------------------------------- | :------------------------------------ | :-------------------------------------------------------------------------------------------------- |
+| `int read()`                              | 单个字符对应的值；`-1` 表示流已到末尾 | 读取一个字符。返回值为 `int`（0 ~ 65535），必须先判断是否为 `-1`，再强转为 `char`。                 |
+| `int read(char[] cbuf)`                   | 实际读取的字符数；`-1` 表示末尾       | 将字符尽量读入目标数组。返回值可能小于数组长度，必须按实际读取数使用。                              |
+| `int read(char[] cbuf, int off, int len)` | 实际读取的字符数；`-1` 表示末尾       | 读取最多 `len` 个字符并存储到从 `off` 开始的数组区间。最常用的底层读取方式。                        |
+| `int read(CharBuffer target)`             | 读入的字符数；`-1` 表示末尾           | 将字符序列读入指定的 NIO `CharBuffer`。                                                             |
+| `boolean ready()`                         | 流是否就绪（读取不阻塞）              | 对常规本地文件流通常返回 `true`；到达文件末尾或流关闭后返回 `false`。**绝不能替代 `-1` 结束判断**。 |
+| `long skip(long n)`                       | 实际跳过的字符数                      | 从流中跳过 `n` 个字符。                                                                             |
+| `String getEncoding()`                    | 编码名称（如 UTF8）                   | 继承自 `InputStreamReader`，返回当前解码器使用的规范编码名。                                        |
+| `void close()`                            | `void`                                | 关闭流并释放底层系统文件句柄。必须调用，强烈建议使用 try-with-resources。                           |
 
 ### 核心特性说明
 
@@ -123,20 +112,14 @@ try (FileReader fr = new FileReader("data.txt", StandardCharsets.UTF_8)) {
 
 ---
 
-## 04 字符编码与乱码陷阱
+## 5 字符编码与乱码陷阱
 
 **文本 I/O 乱码的本质是：保存文件时的字节编码 与 读取文件时的解码字符集 不一致。**
 
-### JDK 版本与默认编码演进
-
-| JDK 版本 | 默认编码机制 (`file.encoding`) | 跨平台行为与影响 |
-| :--- | :--- | :--- |
-| **JDK 8 ~ 17** | 遵循宿主操作系统的默认区域配置（Locale） | Windows 中文环境默认 `GBK`；Linux / macOS 默认 `UTF-8`。未指定编码的代码跨系统迁移极易产生乱码。 |
-| **JDK 18+（JEP 400）** | 运行时默认编码统一为 `UTF-8` | 无论操作系统环境，默认均采用 UTF-8，除非显式指定 `-Dfile.encoding=COMPAT`。但读取传统 GBK 遗留文件仍需显式声明 GBK。 |
-
-> ⛔ **常见乱码场景解析：**  
-> - **GBK 字节按 UTF-8 解码：** 遇到非法的 UTF-8 多字节序列，解析失败会被替换为 `\uFFFD`（即常见的未知占位字符 ``）。
-> - **UTF-8 字节按 GBK 解码：** 多个 UTF-8 字节被错误组合按 GBK 双字节映射，常出现“锟斤拷”、“烫烫烫”等乱码。
+| JDK 版本               | 默认编码机制 (`file.encoding`)           | 跨平台行为与影响                                                                                                     |
+| :--------------------- | :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| **JDK 8 ~ 17**         | 遵循宿主操作系统的默认区域配置（Locale） | Windows 中文环境默认 `GBK`；Linux / macOS 默认 `UTF-8`。未指定编码的代码跨系统迁移极易产生乱码。                     |
+| **JDK 18+（JEP 400）** | 运行时默认编码统一为 `UTF-8`             | 无论操作系统环境，默认均采用 UTF-8，除非显式指定 `-Dfile.encoding=COMPAT`。但读取传统 GBK 遗留文件仍需显式声明 GBK。 |
 
 ```java
 // EncodingDemo.java — 各版本指定编码的规范方式
@@ -160,9 +143,9 @@ System.out.println("FileReader 实际解码器: " + frUtf8.getEncoding());
 
 ---
 
-## 05 典型实战范式
+## 6 代码示例
 
-### A · 生产级按行读取（包装 BufferedReader）
+### 6.1 生产级按行读取
 
 按行读取是最普遍的文本操作场景，结合 `BufferedReader` 不仅提供 `readLine()`，还自带内存缓冲区减少磁盘 I/O 次数。
 
@@ -182,7 +165,9 @@ try (BufferedReader reader = new BufferedReader(
 }
 ```
 
-### B · 小文件便捷读取（JDK 11+ / NIO.2 现代写法）
+### 6.2 小文件便捷读取
+
+JDK 11+ / NIO.2 现代写法
 
 现代 Java 项目若仅需快速加载轻量级配置或全量读取文本，NIO.2 的 `Files` 工具类往往是更简洁且安全的选择。
 
@@ -203,7 +188,9 @@ try (Stream<String> lineStream = Files.lines(Path.of("large-audit.log"), Standar
 }
 ```
 
-### C · 遗留系统 GBK 编码兼容（JDK 8 标准解法）
+### 6.3 遗留系统 GBK 编码兼容
+
+JDK 8 标准解法
 
 ```java
 // LegacyGbkExample.java
@@ -222,7 +209,7 @@ try (BufferedReader br = new BufferedReader(
 }
 ```
 
-### D · 加载 Properties 配置文件
+### 6.4 加载 Properties 配置文件
 
 ```java
 // PropertiesExample.java
@@ -237,20 +224,21 @@ try (FileReader fr = new FileReader("application.properties", StandardCharsets.U
 
 ---
 
-## 06 方案选型与对比矩阵
+## 7 与其他方式对比
 
 在现代 Java 开发中，`FileReader` 并非唯一选项，应结合版本、文件规模及读取要求进行选型：
 
-| 选型对比维度 | `FileReader` | `InputStreamReader` | `BufferedReader` (包装) | `Files.readString / lines` | `Scanner` |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **JDK 8 指定编码** | ❌ 仅限默认 | ✅ 构造参数指定 | ✅ 取决于内层流 | ✅ `Files` 显式传参 | ✅ 构造参数指定 |
-| **按行读取 (`readLine`)**| ❌ 不支持 | ❌ 不支持 | ✅ 原生支持 | ✅ lines 流支持 | ✅ `nextLine()` |
-| **自带缓冲性能** | ❌ 无缓冲 | ❌ 仅底层最小解码缓冲 | ✅ 默认 8KB 字符缓冲 | ✅ 内部默认启用缓冲 | ✅ 自带小缓冲 (但较慢) |
-| **支持 Mark/Reset** | ❌ 不支持 | ❌ 不支持 | ✅ 支持回溯 | — (流或整体加载) | ❌ 不支持 |
-| **读二进制数据** | ❌ (会损毁) | ❌ (会损毁) | ❌ (会损毁) | ❌ (应用 readAllBytes) | ❌ (会损毁) |
-| **主要适用场景** | 教学、微型文件 | JDK 8 需指定编码 | 生产级按行读、大文件日志 | 现代项目首选 (小文件/函数式) | 算法题多类型标记解析 |
+| 选型对比维度              |  `FileReader`  |  `InputStreamReader`  | `BufferedReader` (包装)  |  `Files.readString / lines`  |       `Scanner`        |
+| :------------------------ | :------------: | :-------------------: | :----------------------: | :--------------------------: | :--------------------: |
+| **JDK 8 指定编码**        |  ❌ 仅限默认   |    ✅ 构造参数指定    |     ✅ 取决于内层流      |     ✅ `Files` 显式传参      |    ✅ 构造参数指定     |
+| **按行读取 (`readLine`)** |   ❌ 不支持    |       ❌ 不支持       |       ✅ 原生支持        |       ✅ lines 流支持        |    ✅ `nextLine()`     |
+| **自带缓冲性能**          |   ❌ 无缓冲    | ❌ 仅底层最小解码缓冲 |   ✅ 默认 8KB 字符缓冲   |     ✅ 内部默认启用缓冲      | ✅ 自带小缓冲 (但较慢) |
+| **支持 Mark/Reset**       |   ❌ 不支持    |       ❌ 不支持       |       ✅ 支持回溯        |       — (流或整体加载)       |       ❌ 不支持        |
+| **读二进制数据**          |  ❌ (会损毁)   |      ❌ (会损毁)      |       ❌ (会损毁)        |    ❌ (应用 readAllBytes)    |      ❌ (会损毁)       |
+| **主要适用场景**          | 教学、微型文件 |   JDK 8 需指定编码    | 生产级按行读、大文件日志 | 现代项目首选 (小文件/函数式) |  算法题多类型标记解析  |
 
 > 💡 **核心选型法则：**
+>
 > 1. **JDK 11+ 新代码读小文件：** 优先选择 `Files.readString(path, charset)`。
 > 2. **按行处理大文本/日志：** 优先选择 `Files.lines(path, charset)` 或 `BufferedReader` 包装。
 > 3. **维护 JDK 8 遗留代码：** 统一使用 `BufferedReader + InputStreamReader(new FileInputStream(...), charset)`。
@@ -258,9 +246,7 @@ try (FileReader fr = new FileReader("application.properties", StandardCharsets.U
 
 ---
 
-## 07 生产速查清单 (CheatSheet)
-
-### 最小可用安全模板
+## 8 速查
 
 ```java
 // SafeFileReaderDemo.java
@@ -284,5 +270,3 @@ public class SafeFileReaderDemo {
     }
 }
 ```
-
-> ℹ️ **读写对称提示：** 字符输出对应类为 `java.io.FileWriter`。使用时同样务必**显式指定相同字符集**并使用 `BufferedWriter` 包装，方可确保读写全链路无乱码、高吞吐。
