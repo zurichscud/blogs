@@ -1124,29 +1124,27 @@ html[data-theme="dark"] .prose .callout {
 }
 
 /* 折叠面板：引用块第一行写成 > [+] 标题 的，由生成器转成 details
-   （见 build-post.mjs 的 accordionOf）。整块当一册折页来排：
-   上下两道细线框出折页，标题行做成目录条目——左栏一颗活字方框装着
-   加减号（开合换字形、换墨色，方框定宽，标题不挪位），标题走衬线
-   （呼应 h2 与引文，和提示块的无衬线一眼分得开），右端一列小字标出
-   开合；正文沿标题列缩进，与标题之间的那道细线就是折线。
-   开合只换符号与线，版面不动 */
+   （见 build-post.mjs 的 accordionOf）。整块排成一条「题线」：
+   上下两道细线框住，标题走衬线、与正文同起；行末一枚等宽加减号——
+   合着是 +、开着是 −，全块只此一处示意；正文在标题下的折线底下
+   展开，不再缩进。开合只换字形，版面不动 */
 .prose .accordion {
-  margin-top: 2.2em;
+  margin-top: 2.4em;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
 }
 
 .prose .accordion__title {
   display: grid;
-  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  column-gap: 0.9rem;
+  column-gap: 1.2rem;
   padding-block: 1.15em;
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 1.02rem;
+  font-size: 1.06rem;
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--ink);
   list-style: none;
   transition: color var(--dur-fast) var(--ease);
@@ -1156,60 +1154,29 @@ html[data-theme="dark"] .prose .callout {
   display: none;
 }
 
-.prose .accordion__title::before {
-  content: "+";
-  display: inline-grid;
-  place-items: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 1px solid var(--rule);
-  font-family: var(--font-mono);
-  font-size: 0.84rem;
-  font-weight: 400;
-  color: var(--accent);
-  transition: border-color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
-}
-
-/* 展开时方框上墨：字身填朱红，减号反白 */
-.prose .accordion[open] .accordion__title::before {
-  content: "−";
-  border-color: var(--accent);
-  background-color: var(--accent);
-  color: var(--paper);
-}
-
-/* 右端的小字：合着是「展开」，开了是「收起」，与目录、上下篇的小字同一副面孔 */
+/* 行末的加减号：等宽、常驻朱红，位置定死在右端 */
 .prose .accordion__title::after {
-  content: "展开";
+  content: "+";
   justify-self: end;
-  font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
   font-weight: 400;
-  letter-spacing: 0.18em;
-  color: var(--muted);
-  transition: color var(--dur-fast) var(--ease);
+  line-height: 1;
+  color: var(--accent);
 }
 
 .prose .accordion[open] .accordion__title::after {
-  content: "收起";
+  content: "−";
 }
 
+/* 悬停整条题线：标题走向朱红，与上下篇的悬停同一手法 */
 .prose .accordion__title:hover {
   color: var(--accent);
 }
 
-.prose .accordion__title:hover::before {
-  border-color: var(--accent);
-}
-
-.prose .accordion__title:hover::after {
-  color: var(--accent);
-}
-
-/* 正文：沿标题列缩进，顶上那道细线是折线 */
+/* 正文：折线之下展开，与标题同起 */
 .prose .accordion__body {
-  padding: 1.1em 0 1.3em 2.5rem;
+  padding: 1.05em 0 1.3em;
   border-top: 1px solid var(--rule);
 }
 
