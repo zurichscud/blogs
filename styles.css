@@ -41,6 +41,15 @@
   --code-number: #8a5a2f;
   --code-name: #2f5a86;
 
+  /* 提示块（> [!NOTE] 这类 callout）：五种语义各借一味已有的墨色，
+     不新添颜色——备注藏蓝、提示松绿、重要墨黑、警告赭、注意朱红。
+     底色由它们和纸色现调（规则在「正文」一段），深浅主题各一档浓度 */
+  --callout-note: var(--code-name);
+  --callout-tip: var(--code-string);
+  --callout-important: var(--ink);
+  --callout-warning: var(--code-number);
+  --callout-caution: var(--accent);
+
   /* 字体
      正文交给系统黑体：苹方与雅黑都是为屏幕正文调校过的字体，
      省下的一整族中文 webfont 请求没有必要花在它身上。
@@ -1056,6 +1065,62 @@ html[data-theme="dark"] .theme-toggle__dial {
 
 .prose blockquote p {
   color: inherit;
+}
+
+/* 提示块：> [!NOTE] 这类引用由生成器转成 .callout（见 build-post.mjs）。
+   直角、左侧一道色条、极淡的同色底，颜色只从左条与标题上认；
+   正文用黑体——衬线留给引用块，两者一眼分得开 */
+.prose .callout {
+  --callout-tone: var(--callout-note);
+  padding: 1rem 1.3rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--callout-tone);
+  background-color: color-mix(in oklab, var(--callout-tone) 5%, var(--paper));
+  line-height: 1.85;
+}
+
+.prose .callout > * + * {
+  margin-top: 0.7em;
+}
+
+.prose .callout__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.83rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  color: var(--callout-tone);
+}
+
+.prose .callout__icon {
+  flex: none;
+}
+
+.prose .callout--note {
+  --callout-tone: var(--callout-note);
+}
+
+.prose .callout--tip {
+  --callout-tone: var(--callout-tip);
+}
+
+.prose .callout--important {
+  --callout-tone: var(--callout-important);
+}
+
+.prose .callout--warning {
+  --callout-tone: var(--callout-warning);
+}
+
+.prose .callout--caution {
+  --callout-tone: var(--callout-caution);
+}
+
+/* 暗色里纸色本就深，同浓度调不出层次，加一档 */
+html[data-theme="dark"] .prose .callout {
+  background-color: color-mix(in oklab, var(--callout-tone) 13%, var(--paper));
 }
 
 .prose ul,
