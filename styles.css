@@ -4,7 +4,7 @@
    纯静态样式表，无构建步骤
 
    设计约定
-   形状  全部直角 (radius: 0)，呼应金属活字与版框
+   形状  一律直角 (radius: 0)，呼应金属活字与版框；只有折叠面板的外盒留 10px 圆角
    色彩  单一强调色朱红 #B4372A，纸墨作底
    主题  纸色与墨色两套令牌，整页统一切换，不做分栏反转
    ========================================================================== */
@@ -1124,25 +1124,36 @@ html[data-theme="dark"] .prose .callout {
 }
 
 /* 折叠面板：引用块第一行写成 > [+] 标题 的，由生成器转成 details
-   （见 build-post.mjs 的 accordionOf）。整块排成一条「题线」：
-   上下两道细线框住，标题走衬线、与正文同起；行末一枚等宽加减号——
-   合着是 +、开着是 −，全块只此一处示意；正文在标题下的折线底下
-   展开，不再缩进。开合只换字形，版面不动 */
+   （见 build-post.mjs 的 accordionOf）。排成一个盒子：细边、小圆角、极淡的墨底；
+   题首一枚右向箭头，开着转朝下。紧挨着的几块并进同一个盒子，行间共用一道线，
+   只首尾留圆角；正文在标题下的折线底下展开，与盒沿对齐 */
 .prose .accordion {
   margin-top: 2.4em;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background-color: color-mix(in oklab, var(--ink) 3%, var(--paper));
+}
+
+/* 并盒：两块的外框叠成一道线，中间的四个角改直角 */
+.prose .accordion + .accordion {
+  margin-top: -1px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.prose .accordion:has(+ .accordion) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .prose .accordion__title {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  column-gap: 1.2rem;
-  padding-block: 1.15em;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.7em;
+  padding: 0.8em 1.4rem;
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 1.06rem;
   font-weight: 600;
   line-height: 1.6;
   color: var(--ink);
@@ -1154,29 +1165,35 @@ html[data-theme="dark"] .prose .callout {
   display: none;
 }
 
-/* 行末的加减号：等宽、常驻朱红，位置定死在右端 */
-.prose .accordion__title::after {
-  content: "+";
-  justify-self: end;
-  font-family: var(--font-mono);
-  font-size: 0.98rem;
-  font-weight: 400;
-  line-height: 1;
-  color: var(--accent);
+/* 题首的箭头：一个只留右、下边框的方块，转成「>」；开着转成「∨」。
+   比标题浅一档，悬停时跟着标题上朱 */
+.prose .accordion__title::before {
+  content: "";
+  justify-self: start;
+  width: 0.6em;
+  height: 0.6em;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
-.prose .accordion[open] .accordion__title::after {
-  content: "−";
+.prose .accordion[open] .accordion__title::before {
+  transform: rotate(45deg);
 }
 
-/* 悬停整条题线：标题走向朱红，与上下篇的悬停同一手法 */
+/* 悬停整行：标题走向朱红，与上下篇的悬停同一手法 */
 .prose .accordion__title:hover {
   color: var(--accent);
 }
 
-/* 正文：折线之下展开，与标题同起 */
+.prose .accordion__title:hover::before {
+  border-color: currentColor;
+}
+
+/* 正文：折线之下展开，与盒沿对齐 */
 .prose .accordion__body {
-  padding: 1.05em 0 1.3em;
+  padding: 1.05em 1.4rem 1.3em;
   border-top: 1px solid var(--rule);
 }
 
